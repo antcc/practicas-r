@@ -1,0 +1,396 @@
+# Ejemplos de funciones en R
+
+Mostramos una serie de funciones de diverso tipo escritas en R, para familiarizarnos con la sintaxis y la utilidad de las mismas.
+
+## Extracción de cartas de una baraja
+
+Esta función simula la extracción de cartas de una baraja de 52 cartas, con reemplazamiento. El objetivo es sacar los cuatro ases en un número concreto de intentos. Estos se encuentran en las posiciones 1, 14, 27 y 40. Devuelve los nombres de las cartas que se van sacando.
+
+- `mostrar`: controla si se muestra información al terminar.
+- `max_intentos`: número máximo de extracciones permitidas.
+
+```{r}
+cuatro_ases_con <- function(mostrar = F, max_intentos = 1000) {
+  intentos <- 0
+  res <- vector(length = max_intentos)
+  nombres <- vector(mode = "character", length = max_intentos)
+  ases <- c(0, 0, 0, 0)
+
+  # Nombres de los palos y las cartas
+  palos <- c("Oros", "Copas", "Espadas", "Bastos")
+  cartas <- c("As", "Dos", "Tres", "Cuatro", "Cinco", "Seis",
+              "Siete", "Ocho", "Nueve", "Diez", "Sota", "Caballo", "Rey")
+
+  # Vamos sacando cartas
+  while (intentos < max_intentos) {
+    # Sacamos una carta
+    extraida <- sample(52, 1)
+    intentos <- intentos + 1
+    res[intentos] <- extraida
+
+    # Calculamos el palo y la carta que es
+    palo <- (extraida - 1) %/% 13 + 1
+    carta <- (extraida - 1) %% 13 + 1
+    nombres[intentos] <- paste(cartas[carta], "de", palos[palo])
+
+    if (extraida %% 13 == 1) { # Si es un as
+      ases[palo] <- 1
+      if (sum(ases) == 4) { # Si tenemos 4 ases
+        length(res) <- length(nombres) <- intentos
+        if (mostrar)
+          cat("He necesitado", intentos,
+              "intentos para obtener cuatro ases.\n")
+        return(list(e = intentos, r = res, n = nombres, conseguido = T))
+      }
+    }
+  }
+
+  if (mostrar)
+    cat("No se han podido obtener cuatro ases en",
+        intentos, "extracciones.\n")
+  return(list(e = NA, r = res, n = nombres, conseguido = F))
+}
+```
+
+Esta función simula `n` juegos de extracción de ases como el de arriba, de forma que podamos estudiar la distribución. Devuelve un vector con los intentos necesarios en cada juego.
+
+```{r}
+distri_ases_con <- function(n = 5, max_intentos = 1000) {
+  res <- vector(length = n)
+  for (i in 1:n)
+    res[i] <- cuatro_ases_con(F, max_intentos)$e
+  res
+}
+```
+
+Repetimos el experimento 1000 veces y estudiamos la distribución de intentos.
+
+```{r}
+intentos_con_reemplazamiento <- distri_ases_con(1000)
+summary(intentos_con_reemplazamiento)
+hist(intentos_con_reemplazamiento)
+```
+
+Esta función es similar a la anterior, pero simula la extracción de cartas sin reemplazamiento. Obtiene una permutación pseudoaleatoria de la baraja y luego extrae las cartas secuencialmente.
+
+```{r}
+cuatro_ases_sin <- function(mostrar = F) {
+  ases <- 0
+  res <- sample(52) # Permutación de la baraja
+  for (i in 1:52) {
+    if (res[i] %% 13 == 1) { # Si es un as
+      ases <- ases + 1
+      if (ases == 4)
+        break
+    }
+  }
+
+  if (mostrar)
+    cat("He necesitado", i,
+        "intentos para obtener cuatro ases.\n")
+  return(list(e = i, r = res[1:i]))
+}
+```
+
+Esta función simula `n` juegos de extracción de ases sin reemplazamiento. Devuelve un vector con los intentos necesarios en cada uno.
+
+```{r}
+distri_ases_sin <- function(n = 5) {
+  res <- vector(length = n)
+  for (i in 1:n)
+    res[i] <- cuatro_ases_sin(F)$e
+  res
+}
+```
+
+Realizamos el mismo estudio de la distribución que antes.
+
+```{r}
+intentos_sin_reemplazamiento <- distri_ases_sin(1000)
+summary(intentos_sin_reemplazamiento)
+hist(intentos_sin_reemplazamiento)
+```
+
+## Lanzamiento de monedas
+
+Esta función simula el lanzamiento de monedas no cargadas hasta obtener un número determinado de caras seguidas.
+
+```{r}
+n_caras <- function(n = 10, mostrar = F, max_intentos = 1000) {
+  caras <- 0
+  intentos <- 0
+  res <- 1:max_intentos
+
+  while (caras < n) {
+    intentos <- intentos + 1
+    lanzamiento <- sample(2, 1)  # '1' es cara, '2' es cruz
+    res[intentos] <- ifelse(lanzamiento == 1, "Cara", "Cruz")
+    if (lanzamiento == 1) { # Si es cara
+      caras <- caras + 1
+      if (caras == n) {
+        length(res) <- intentos
+        if (mostrar)
+          cat("He necesitado", intentos, "lanzamientos para obtener",
+              n, "caras seguidas.\n")
+        return(list(l = intentos, r = res, conseguido = T))
+      }
+    }
+    else { # Se corta la racha
+      caras <- 0
+    }
+  }
+
+  return(list(l = NA, r = res, conseguido = F))
+}
+```
+
+Esta función simula `m` juegos de lanzamiento de monedas hasta obtener `n` caras. Devuelve un vector con los lanzamientos necesarios en cada uno.
+
+```{r}
+distri_caras <- function(m = 5, n = 3, max_intentos = 1000) {
+  res <- vector(length = m)
+  for (i in 1:m)
+    res[i] <- n_caras(n, F, max_intentos)$l
+  res
+}
+```
+
+Estudiamos la distribución del número de lanzamientos.
+
+```{r}
+lanzamientos_5_caras <- distri_caras(1000, 5)
+summary(lanzamientos_5_caras)
+hist(lanzamientos_5_caras)
+```
+
+## Suma de potencias
+
+Esta función acepta un vector y devuelve las distintas sumas de las potencias señaladas del mismo.
+
+```{r}
+sumpot <- function(x, pot = 2:3) {
+  l <- length(pot)
+
+  # Hacemos pre-allocation de una lista
+  res <- vector("list", length = l)
+  for (i in 1:l)
+    res[[i]] <- sum(x^pot[i])
+
+  return(res)
+}
+```
+
+## Cuadrícula de distancias
+
+Esta función genera una cuadrícula sobre un conjunto de ordenadas (`x`) y abscisas (`y`), y para cada punto, calcula la distancia al origen.
+
+```{r}
+distancia_origen <- function(x, y) {
+  # Evitamos escribir el doble bucle usando el producto externo
+  outer(x, y, function(x, y) sqrt(x^2 + y^2))
+}
+```
+
+Podemos probarla para ver cómo queda una cuadrícula concreta.
+
+```{r}
+distancia_origen(1:3, -2:2)
+```
+
+Podemos visualizar la superficie dada por la función `f(X,Y) = sqrt(X^2 + Y^2)`.
+
+```{r}
+persp(distancia_origen(-40:40, -40:40), col = "lightblue")
+```
+
+## Procesos no lineales
+
+Escribimos una serie de funciones relacionadas con la obtención de puntos de forma no lineal.
+
+```{r}
+dong1 <- function(n = 100) {
+  ini <- Sys.time()  # medimos el tiempo de ejecución
+
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  for (i in 2:n) {
+    m <- ifelse(sample(2, 1) == 2, 1, -1)
+    x[i] <- 0.5 * x[i - 1] + 0.5 * y[i - 1] + m
+    y[i] <- -0.5 * x[i - 1] + 0.5 * y[i - 1] + m
+  }
+
+  return(list(x = x[2:n], y = y[2:n], tiempo = Sys.time() - ini))
+}
+
+dong2 <- function(n = 100) {
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  # Creamos vectores para evitar varias sentencias 'if'
+  xx <- c(0, 0.5, 0.25)
+  yy <- c(0, 0, 0.5)
+
+  for (i in 2:n) {
+    a <- sample(3, 1)
+    x[i] <- 0.5 * x[i - 1] + xx[a]
+    y[i] <- 0.5 * y[i - 1] + yy[a]
+  }
+
+  return(list(x = x[2:n], y = y[2:n]))
+}
+
+dong3 <- function(n = 100) {
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  for (i in 2:n) {
+    # Aprovechamos el parámetro 'p' de la función 'sample'
+    # para extraer números con distinta probabilidad:
+    # 1 -> 0.01, 2 -> 0.85, 3 -> 0.07, 4 -> 0.07
+    a <- sample(4, 1, p = c(1, 85, 7, 7))
+    switch(a,
+    { # Caso a=1
+      x[i] <- 0
+      y[i] <- 0.25 * y[i - 1]
+    },
+    { # Caso a=2
+      x[i] <- 0.85 * x[i - 1] + 0.04 * y[i - 1]
+      y[i] <- -0.04 * x[i - 1] + 0.85 * y[i - 1] + 1.6
+    },
+    { # Caso a=3
+      x[i] <- 0.2 * x[i - 1] - 0.26 * y[i - 1]
+      y[i] <- 0.26 * x[i - 1] + 0.22 * y[i - 1]
+    },
+    { # Caso a=4
+      x[i] <- -0.15 * x[i - 1] + 0.28 * y[i - 1]
+      y[i] <- 0.26 * x[i - 1] + 0.24 * y[i - 1] + 1
+    }
+    )
+  }
+  return(list(x = x[2:n], y = y[2:n]))
+}
+```
+
+Intentamos mejorar la primera función para que sea más eficiente.
+
+```{r}
+dong1_mejorada <- function(n = 100) {
+  ini <- Sys.time()
+
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  # Extraemos todos los números aleatorios de una tirada
+  m <- sample(c(-1, 1), n, T)
+
+  for (i in 2:n) {
+    x[i] <- 0.5 * x[i - 1] + 0.5 * y[i - 1] + m[i]
+    y[i] <- -0.5 * x[i - 1] + 0.5 * y[i - 1] + m[i]
+  }
+
+  return(list(x = x[2:n], y = y[2:n], tiempo = Sys.time() - ini))
+}
+```
+
+Podemos comprobar llamando a las funciones `dong1` y `dong1_mejorada` que la versión mejorada tiene un tiempo de ejecución significativamente menor.
+
+# Lectura y manipulación de datos
+
+Veamos cómo podemos leer datos externos al programa y obtener información estadística sobre ellos.
+
+## Entrada de datos
+
+Leemos un archivo en formato `csv` desde una dirección remota de internet. Usamos `read.csv` con `header = T` (por defecto), pues los datos están separados por ',' y tienen una primera línea de cabecera.
+
+```{r}
+datos <- read.csv("http://www.ugr.es/local/andresgc/Datos.txt", as.is = T)
+```
+
+Podemos leer también otro archivo con `read.table`, esta vez con los datos separados por espacios.
+
+```{r}
+datos2 <-
+  invisible(read.table(
+    "http://www.ugr.es/local/andresgc/Datos2.txt",
+    header = T, as.is = T))
+```
+
+Con la orden `ls()` podemos comprobar que se han añadido los nuevos objetos leídos. Podemos usar `attach()` para tener disponibles los objetos dentro de los datos leídos.
+
+```{r}
+attach(datos)
+Peso
+detach(datos)
+```
+
+## Estudio de los datos
+
+La orden `summary()` nos muestra el mínimo, el máximo, la media, la mediana, y los cuartiles primero y tercero de los datos numéricos.
+
+```{r}
+summary(datos)
+```
+
+Podemos también realizar un histograma de alguna columna de los datos.
+
+```{r}
+hist(datos2$Peso)
+```
+
+Podemos realizar también algún diagrama de caja. Estos dividen los datos en 3 cuartiles, y se representan el mínimo, el máximo, la mediana, y los cuartiles primero y tercero.
+
+Representamos en primer lugar la altura frente al sexo en el primer conjunto de datos.
+
+```{r}
+boxplot(Altura ~ Sexo, data = datos)
+```
+
+Ahora estudiamos el peso frente a la edad en el mismo conjunto de datos.
+
+```{r}
+boxplot(Peso ~ Edad, data = datos)
+```
+
+# Añadir funcionalidad mediante libros
+
+Podemos añadir funcionalidad a R mediante la infinidad de libros disponibles. Estos han sido desarrollados por la comunidad, y se almacenan en *The Comprehensive R Archive Network* ([CRAN](https://cran.r-project.org/index.html)).
+
+Podemos consultar los libros disponibles por defecto con `library()`, y también la ayuda de los mismos, por ejemplo con `library(help = "cluster")`.
+
+Cargamos un par de ellos y observamos que se añaden a la lista.
+
+```{r}
+library(cluster)
+library(curl)
+search()
+```
+
+Ahora podemos utilizar las funciones del libro *cluster*. Por ejemplo, escribimos una función para aplicar K-medias a los datos que habíamos leído, y mostrar los resultados.
+
+```{r}
+fit_kmeans <- function(data, k) {
+  fit <- kmeans(data, k)
+
+  # Esta función del libro 'cluster' muestra gráficamente los clusters
+  # obtenidos, frente a las 2 primeras componentes principales
+  clusplot(
+    data, fit$cluster, color = T,
+    shade = T, labels = 2, lines = 0)
+}
+
+fit_kmeans(datos[c(1, 2, 3)], 4)
+```
+
+Para descargar los libros que ya no vayamos a utilizar, usamos `detach()`.
+
+```{r}
+# Descargamos el libro 'curl' (que ocupa la segunda posición)
+detach()
+# Descargamos el libro 'cluster'
+detach()
+```

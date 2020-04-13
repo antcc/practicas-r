@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<!--- PLANTILLA ORIGINAL DE https://hplgit.github.io/teamods/writing_reports/_static/report_github_minimal.html --->
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Presentación de resultados con R</title>
+
+    <link rel="stylesheet" href="assets/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Presentación de resultados con R</h1>
+
+<p>Páginas en HTML y el libro <i>knitr</i></p>
+
+        <!-- picture below the heading on the left -->
+	<a href="https://www.r-project.org/" target="_blank"><img src="assets/r.png" width="180"></a>
+
+  <!--- Aquí debería ir el índice -->
+  <div id="toc_container">
+
+<h3 class="toc_title" style="margin-top:30px;">Contenidos</h3>
+<ul class="toc_list">
+  <li><a href="#ejemplos-de-funciones-en-r">Ejemplos de funciones en R</a>
+  <ul>
+    <li><a href="#extracción-de-cartas-de-una-baraja">Extracción de cartas de una baraja</a></li>
+    <li><a href="#lanzamiento-de-monedas">Lanzamiento de monedas</a></li>
+    <li><a href="#otras-funciones">Otras funciones</a></li>
+  </ul>
+</li>
+<li><a href="#lectura-y-manipulación-de-datos">Lectura y manipulación de datos</a></li>
+<li><a href="#añadir-funcionalidad-mediante-libros">Añadir funcionalidad mediante libros</a></li>
+</ul>
+</div>
+
+      </header>
+
+      <!-- Here goes the main page --->
+      <section>
+
+     <button onclick="topFunction()" id="myBtn" title="Subir">Subir</button>
+
+<script>
+//Get the button:
+mybutton = document.getElementById("myBtn");
+
+// When the user scrolls down 400px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+  if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+    mybutton.style.display = "block";
+  } else {
+    mybutton.style.display = "none";
+  }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+  document.body.scrollTop = 0; // For Safari
+  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+}
+</script>
+
+<!-- ------------------- main content ---------------------- -->
+
+<h1 id="ejemplos-de-funciones-en-r">Ejemplos de funciones en R</h1>
+<p>Mostramos una serie de funciones de diverso tipo escritas en R, para familiarizarnos con la sintaxis y la utilidad de las mismas.</p>
+<h2 id="extracción-de-cartas-de-una-baraja">Extracción de cartas de una baraja</h2>
+<p>Esta función simula la extracción de cartas de una baraja de 52 cartas, con reemplazamiento. El objetivo es sacar los cuatro ases en un número concreto de intentos. Estos se encuentran en las posiciones 1, 14, 27 y 40. Devuelve los nombres de las cartas que se van sacando.</p>
+<ul>
+<li><code>mostrar</code>: controla si se muestra información al terminar.</li>
+<li><code>max_intentos</code>: número máximo de extracciones permitidas.</li>
+</ul>
+<!--begin.rcode
+cuatro_ases_con <- function(mostrar = F, max_intentos = 1000) {
+  intentos <- 0
+  res <- vector(length = max_intentos)
+  nombres <- vector(mode = "character", length = max_intentos)
+  ases <- c(0, 0, 0, 0)
+
+  # Nombres de los palos y las cartas
+  palos <- c("Oros", "Copas", "Espadas", "Bastos")
+  cartas <- c("As", "Dos", "Tres", "Cuatro", "Cinco", "Seis",
+              "Siete", "Ocho", "Nueve", "Diez", "Sota", "Caballo", "Rey")
+
+  # Vamos sacando cartas
+  while (intentos < max_intentos) {
+    # Sacamos una carta
+    extraida <- sample(52, 1)
+    intentos <- intentos + 1
+    res[intentos] <- extraida
+
+    # Calculamos el palo y la carta que es
+    palo <- (extraida - 1) %/% 13 + 1
+    carta <- (extraida - 1) %% 13 + 1
+    nombres[intentos] <- paste(cartas[carta], "de", palos[palo])
+
+    if (extraida %% 13 == 1) { # Si es un as
+      ases[palo] <- 1
+      if (sum(ases) == 4) { # Si tenemos 4 ases
+        length(res) <- length(nombres) <- intentos
+        if (mostrar)
+          cat("He necesitado", intentos,
+              "intentos para obtener cuatro ases.\n")
+        return(list(e = intentos, r = res, n = nombres, conseguido = T))
+      }
+    }
+  }
+
+  if (mostrar)
+    cat("No se han podido obtener cuatro ases en",
+        intentos, "extracciones.\n")
+  return(list(e = NA, r = res, n = nombres, conseguido = F))
+}
+end.rcode-->
+<p>Esta función simula <code>n</code> juegos de extracción de ases como el de arriba, de forma que podamos estudiar la distribución. Devuelve un vector con los intentos necesarios en cada juego.</p>
+<!--begin.rcode
+distri_ases_con <- function(n = 5, max_intentos = 1000) {
+  res <- vector(length = n)
+  for (i in 1:n)
+    res[i] <- cuatro_ases_con(F, max_intentos)$e
+  res
+}
+end.rcode-->
+<p>Repetimos el experimento 1000 veces y estudiamos la distribución de intentos.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+intentos_con_reemplazamiento <- distri_ases_con(1000)
+summary(intentos_con_reemplazamiento)
+hist(intentos_con_reemplazamiento)
+end.rcode-->
+<br>
+<p>Esta función es similar a la anterior, pero simula la extracción de cartas sin reemplazamiento. Obtiene una permutación pseudoaleatoria de la baraja y luego extrae las cartas secuencialmente.</p>
+<!--begin.rcode
+cuatro_ases_sin <- function(mostrar = F) {
+  ases <- 0
+  res <- sample(52) # Permutación de la baraja
+  for (i in 1:52) {
+    if (res[i] %% 13 == 1) { # Si es un as
+      ases <- ases + 1
+      if (ases == 4)
+        break
+    }
+  }
+
+  if (mostrar)
+    cat("He necesitado", i,
+        "intentos para obtener cuatro ases.\n")
+  return(list(e = i, r = res[1:i]))
+}
+end.rcode-->
+<p>Esta función simula <code>n</code> juegos de extracción de ases sin reemplazamiento. Devuelve un vector con los intentos necesarios en cada uno.</p>
+<!--begin.rcode
+distri_ases_sin <- function(n = 5) {
+  res <- vector(length = n)
+  for (i in 1:n)
+    res[i] <- cuatro_ases_sin(F)$e
+  res
+}
+end.rcode-->
+<p>Realizamos el mismo estudio de la distribución que antes.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+intentos_sin_reemplazamiento <- distri_ases_sin(1000)
+summary(intentos_sin_reemplazamiento)
+hist(intentos_sin_reemplazamiento)
+end.rcode-->
+<br>
+<h2 id="lanzamiento-de-monedas">Lanzamiento de monedas</h2>
+<p>Esta función simula el lanzamiento de monedas no cargadas hasta obtener un número determinado de caras seguidas.</p>
+<!--begin.rcode
+n_caras <- function(n = 10, mostrar = F, max_intentos = 1000) {
+  caras <- 0
+  intentos <- 0
+  res <- 1:max_intentos
+
+  while (caras < n) {
+    intentos <- intentos + 1
+    lanzamiento <- sample(2, 1)  # '1' es cara, '2' es cruz
+    res[intentos] <- ifelse(lanzamiento == 1, "Cara", "Cruz")
+    if (lanzamiento == 1) { # Si es cara
+      caras <- caras + 1
+      if (caras == n) {
+        length(res) <- intentos
+        if (mostrar)
+          cat("He necesitado", intentos, "lanzamientos para obtener",
+              n, "caras seguidas.\n")
+        return(list(l = intentos, r = res, conseguido = T))
+      }
+    }
+    else { # Se corta la racha
+      caras <- 0
+    }
+  }
+
+  return(list(l = NA, r = res, conseguido = F))
+}
+end.rcode-->
+<p>Esta función simula <code>m</code> juegos de lanzamiento de monedas hasta obtener <code>n</code> caras. Devuelve un vector con los lanzamientos necesarios en cada uno.</p>
+<!--begin.rcode
+distri_caras <- function(m = 5, n = 3, max_intentos = 1000) {
+  res <- vector(length = m)
+  for (i in 1:m)
+    res[i] <- n_caras(n, F, max_intentos)$l
+  res
+}
+end.rcode-->
+<p>Estudiamos la distribución del número de lanzamientos.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+lanzamientos_5_caras <- distri_caras(1000, 5)
+summary(lanzamientos_5_caras)
+hist(lanzamientos_5_caras)
+end.rcode-->
+<br>
+<h2 id="otras-funciones">Otras funciones</h2>
+<p>Esta función acepta un vector y devuelve las distintas sumas de las potencias señaladas del mismo.</p>
+<!--begin.rcode
+sumpot <- function(x, pot = 2:3) {
+  l <- length(pot)
+
+  # Hacemos pre-allocation de una lista
+  res <- vector("list", length = l)
+  for (i in 1:l)
+    res[[i]] <- sum(x^pot[i])
+
+  return(res)
+}
+end.rcode-->
+<p>Esta función genera una cuadrícula sobre un conjunto de ordenadas (<code>x</code>) y abscisas (<code>y</code>), y para cada punto, calcula la distancia al origen.</p>
+<!--begin.rcode
+distancia_origen <- function(x, y) {
+  # Evitamos escribir el doble bucle usando el producto externo
+  outer(x, y, function(x, y) sqrt(x^2 + y^2))
+}
+end.rcode-->
+<p>Podemos probarla para ver cómo queda una cuadrícula concreta.</p>
+<!--begin.rcode
+distancia_origen(1:3, -2:2)
+end.rcode-->
+<p>Podemos visualizar la superficie dada por la función <code>f(X,Y) = sqrt(X^2 + Y^2)</code>.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+persp(distancia_origen(-40:40, -40:40), col = "lightblue")
+end.rcode-->
+<br>
+<p>Escribimos una serie de funciones relacionadas con la obtención de puntos de forma no lineal.</p>
+<!--begin.rcode
+dong1 <- function(n = 100) {
+  ini <- Sys.time()  # medimos el tiempo de ejecución
+
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  for (i in 2:n) {
+    m <- ifelse(sample(2, 1) == 2, 1, -1)
+    x[i] <- 0.5 * x[i - 1] + 0.5 * y[i - 1] + m
+    y[i] <- -0.5 * x[i - 1] + 0.5 * y[i - 1] + m
+  }
+
+  return(list(x = x[2:n], y = y[2:n], tiempo = Sys.time() - ini))
+}
+
+dong2 <- function(n = 100) {
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  # Creamos vectores para evitar varias sentencias 'if'
+  xx <- c(0, 0.5, 0.25)
+  yy <- c(0, 0, 0.5)
+
+  for (i in 2:n) {
+    a <- sample(3, 1)
+    x[i] <- 0.5 * x[i - 1] + xx[a]
+    y[i] <- 0.5 * y[i - 1] + yy[a]
+  }
+
+  return(list(x = x[2:n], y = y[2:n]))
+}
+
+dong3 <- function(n = 100) {
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  for (i in 2:n) {
+    # Aprovechamos el parámetro 'p' de la función 'sample'
+    # para extraer números con distinta probabilidad:
+    # 1 -> 0.01, 2 -> 0.85, 3 -> 0.07, 4 -> 0.07
+    a <- sample(4, 1, p = c(1, 85, 7, 7))
+    switch(a,
+    { # Caso a=1
+      x[i] <- 0
+      y[i] <- 0.25 * y[i - 1]
+    },
+    { # Caso a=2
+      x[i] <- 0.85 * x[i - 1] + 0.04 * y[i - 1]
+      y[i] <- -0.04 * x[i - 1] + 0.85 * y[i - 1] + 1.6
+    },
+    { # Caso a=3
+      x[i] <- 0.2 * x[i - 1] - 0.26 * y[i - 1]
+      y[i] <- 0.26 * x[i - 1] + 0.22 * y[i - 1]
+    },
+    { # Caso a=4
+      x[i] <- -0.15 * x[i - 1] + 0.28 * y[i - 1]
+      y[i] <- 0.26 * x[i - 1] + 0.24 * y[i - 1] + 1
+    }
+    )
+  }
+  return(list(x = x[2:n], y = y[2:n]))
+}
+end.rcode-->
+<p>Intentamos mejorar la primera función para que sea más eficiente.</p>
+<!--begin.rcode
+dong1_mejorada <- function(n = 100) {
+  ini <- Sys.time()
+
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  # Extraemos todos los números aleatorios de una tirada
+  m <- sample(c(-1, 1), n, T)
+
+  for (i in 2:n) {
+    x[i] <- 0.5 * x[i - 1] + 0.5 * y[i - 1] + m[i]
+    y[i] <- -0.5 * x[i - 1] + 0.5 * y[i - 1] + m[i]
+  }
+
+  return(list(x = x[2:n], y = y[2:n], tiempo = Sys.time() - ini))
+}
+end.rcode-->
+<p>Podemos comprobar llamando a las funciones <code>dong1</code> y <code>dong1_mejorada</code> que la versión mejorada tiene un tiempo de ejecución significativamente menor.</p>
+<h1 id="lectura-y-manipulación-de-datos">Lectura y manipulación de datos</h1>
+<p>Veamos cómo podemos leer datos externos al programa y obtener información estadística sobre ellos.</p>
+<p>Leemos un archivo en formato <code>csv</code> desde una dirección remota de internet. Usamos <code>read.csv</code> con <code>header = T</code> (por defecto), pues los datos están separados por coma y tienen una primera línea de cabecera.</p>
+<!--begin.rcode
+datos <- read.csv("http://www.ugr.es/local/andresgc/Datos.txt", as.is = T)
+end.rcode-->
+<p>Podemos leer también otro archivo con <code>read.table</code>, esta vez con los datos separados por espacios.</p>
+<!--begin.rcode
+datos2 <-
+  invisible(read.table(
+    "http://www.ugr.es/local/andresgc/Datos2.txt",
+    header = T, as.is = T))
+end.rcode-->
+<p>Con la orden <code>ls()</code> podemos comprobar que se han añadido los nuevos objetos leídos. Podemos usar <code>attach()</code> para tener disponibles directamente como objetos las columnas de de los datos leídos.</p>
+<!--begin.rcode
+attach(datos)
+Peso
+detach(datos)
+end.rcode-->
+<p>La orden <code>summary()</code> nos muestra el mínimo, el máximo, la media, la mediana, y los cuartiles primero y tercero de los datos numéricos.</p>
+<!--begin.rcode
+summary(datos)
+end.rcode-->
+<p>Podemos también realizar un histograma de alguna columna de los datos.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+hist(datos2$Peso)
+end.rcode-->
+<br>
+<p>Podemos realizar también algún diagrama de caja. Estos dividen los datos en 3 cuartiles, y se representan el mínimo, el máximo, la mediana, y los cuartiles primero y tercero.</p>
+<p>Representamos en primer lugar la altura frente al sexo en el primer conjunto de datos.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+boxplot(Altura ~ Sexo, data = datos)
+end.rcode-->
+<br>
+<p>Ahora estudiamos el peso frente a la edad en el mismo conjunto de datos.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+boxplot(Peso ~ Edad, data = datos)
+end.rcode-->
+<br>
+<h1 id="añadir-funcionalidad-mediante-libros">Añadir funcionalidad mediante libros</h1>
+<p>Podemos añadir funcionalidad a R mediante la infinidad de libros disponibles. Estos han sido desarrollados por la comunidad, y se almacenan en <em>The Comprehensive R Archive Network</em> (<a href="https://cran.r-project.org/index.html" target = "_blank">CRAN</a>).</p>
+<p>Podemos consultar los libros disponibles por defecto con <code>library()</code>, y también la ayuda de los mismos, por ejemplo con <code>library(help = "cluster")</code>.</p>
+<p>Cargamos un par de ellos y observamos que se añaden a la lista.</p>
+<!--begin.rcode
+library(cluster)
+library(curl)
+search()
+end.rcode-->
+<p>Ahora podemos utilizar las funciones del libro <em>cluster</em>. Por ejemplo, escribimos una función para aplicar K-medias a los datos que habíamos leído, y mostrar los resultados.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+fit_kmeans <- function(data, k) {
+  fit <- kmeans(data, k)
+
+  # Esta función del libro 'cluster' muestra gráficamente los clusters
+  # obtenidos, frente a las 2 primeras componentes principales
+  clusplot(
+    data, fit$cluster, color = T,
+    shade = T, labels = 2, lines = 0)
+}
+
+fit_kmeans(datos[c(1, 2, 3)], 4)
+end.rcode-->
+<br>
+<p>Para descargar los libros que ya no vayamos a utilizar, usamos <code>detach()</code>.</p>
+<!--begin.rcode
+# Descargamos el libro 'curl' (que ocupa la segunda posición)
+detach()
+# Descargamos el libro 'cluster'
+detach()
+end.rcode-->
+
+<!-- ------------------- end of main content --------------- -->
+
+      </section>
+
+      <footer>
+        Antonio Coín Castro
+        <p><small>Tema original de <a href="https://github.com/orderedlist">orderedlist</a></p><p></p>
+      </footer>
+
+    </div>
+</body></html>

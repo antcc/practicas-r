@@ -1,3 +1,6 @@
 .ipynb_checkpoints/
 .RData
 .Rhistory
+figure/
+resources/
+*.zip

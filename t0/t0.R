@@ -91,3 +91,42 @@ xt <- aperm(x, c(2, 1))
 xtt <- aperm(x, c(2, 1), F)
 xt
 xtt
+
+# %% Listas
+l <-list(A=1:10, B=c("1", "a"))
+l
+l$A
+l[[2]]
+l[c(1,2)]
+
+# %% Dataframes
+
+h1 <- data.frame(Peso=c(90,87,60), Altura=c(1.85, 1.87, 1.63))
+h1
+h2 <- data.frame(h1, Sexo=c("H", "H", "M"))
+h2[,3]
+h2[3]
+h2[[3]]
+
+# La función I() permite introducir un vector sin transformarlo en factores
+h3 <- data.frame(h2, Nombre=I(c("Pepe", "Juan", "Antonia")))
+h3
+
+# Subconjuntos y transformaciones
+subset(h3,select=c(Sexo,Nombre))
+subset(h3,subset=(Sexo=="H"))
+
+transform(h3,Peso=log(Peso))
+transform(h3,LogPeso=log(Peso))
+
+# Comprobar tipo de objetos
+x <- 1:50
+x <- as.data.frame(x)
+head(x)
+
+# %% Funciones y estructuras
+
+# if - else es escalar
+# ifelse es vectorial
+inverso <- function(x) ifelse(x==0, NA, 1/x)
+inverso(-1:2)
