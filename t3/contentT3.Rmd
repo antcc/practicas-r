@@ -1,0 +1,443 @@
+Vamos a ver en este documento cómo trabajar con gráficos en R. Estudiamos a continuación algunas funciones de las muchas disponibles en el libro `graphics`.
+
+## Dispositivos gráficos
+
+Antes de generar un gráfico y representarlo es necesario tener activo un dispositivo gráfico que lo admita. Podemos listar los dispositivos gráficos disponibles con `?Devices`, y disponemos de diferentes funciones para su manipulación. Destacamos a continuación las más relevantes, pensadas especialmente para la representación interactiva:
+
+- La función `x11` abre una nueva ventana gráfica a la que irán dirigidos los resultados gráficos. Es también un sinónimo para `win.graph` y `windows`.
+- La función `win.print` genera gráficos directamente sobre el administrador de impresión del sistema.
+- La función `pictex` genera gráficos para su uso en `TeX` y `LaTeX` (previa inclusión del paquete homónimo).
+- Las funciones `bmp`, `png` y `jpeg` generan gráficos en el formato que indica su nombre.
+- La función `win.metafile` imprime el gráfico en un archivo.
+- La función `postscript` genera gráficos que pueden utilizarse en cualquier dispositivo que acepte el lenguaje `Postscript`.
+
+Mención especial merece la función `graphics.off`, que cierra todos los dispositivos gráficos y termina de dibujar los gráficos pendientes.
+
+## Funciones de representación genéricas
+
+Existen funciones multiusos para realizar distintos tipos de gráficos.
+
+### La función `plot`
+
+Estudiamos primero la función `plot`, que es una función genérica para crear un gráfico en el dispositivo actual, y que tiene comportamientos específicos para algunos objetos. Mostramos un par de ejemplos de uso, dibujando en rojo un tramo de la función \\(y=x^3\\), y por otro lado el resultado de representar los puntos obtenidos con la función no lineal `dong2` que implementamos en la entrega anterior.
+
+```{r}
+dong2 <- function(n = 100) {
+  x <- vector(mode = "numeric", length = n)
+  y <- vector(mode = "numeric", length = n)
+  x[1] <- y[1] <- 1
+
+  # Creamos vectores para evitar varias sentencias 'if'
+  xx <- c(0, 0.5, 0.25)
+  yy <- c(0, 0, 0.5)
+
+  for (i in 2:n) {
+    a <- sample(3, 1)
+    x[i] <- 0.5 * x[i - 1] + xx[a]
+    y[i] <- 0.5 * y[i - 1] + yy[a]
+  }
+
+  return(list(x = x[2:n], y = y[2:n]))
+}
+```
+
+```{r}
+plot(1:50, (1:50)^3, type = "l", col = "red")
+plot(dong2(10000), col = "blue")
+```
+
+### La función `text`
+
+También tenemos la función `text`, que añade texto a un gráfico existente en unas coordenadas concretas. Sus argumentos más importantes son:
+
+- `x` e `y` son vectores numéricos de coordenadas en que deben ser escritas las etiquetas (*labels*) de texto.
+- `labels` es un vector de tipo carácter o una expresión que especifica el texto que se desea escribir.
+- `adj` es uno o dos valores del intervalo `[0,1]` que especifican el ajuste de las etiquetas en `x` e `y`, respectivamente. El valor predeterminado es `c(0.5,0.5)`, que significa centrado en ambas coordenadas.
+- `pos` toma valores 1,2,3 ó 4 para indicar que el texto debe estar debajo, a la izquierda, encima o a la derecha de las coordenadas especificadas.
+- `cex` es el factor de expansión de los caracteres.
+- `col` y `font` son el color y la fuente.
+- El texto puede rotarse respecto del centro definido por `adj` mediante el
+parámetro gráfico `srt`.
+
+Por ejemplo, podemos añadir texto a la representación de la función anterior. Aprovechamos para ilustrar el funcionamiento del libro `latex2exp`, que permite introducir expresiones matemáticas correctamente renderizadas como texto, siguiendo la sintaxis de `TeX`. Si no lo tenemos instalado, lo descargamos desde CRAN con la orden `install.packages('latex2exp')`.
+
+```{r}
+library(latex2exp)
+plot(1:50, (1:50)^3, type = "l", col = "blue")
+text(35, 100000, TeX("y=x^3"), col = "blue", cex = 3)
+```
+
+### Gráficos múltiples
+
+Entre los argumentos de la función `par` hay algunos que permiten presentar gráficos múltiples. En particular, el argumento `mfcol` permite especificar una cuadrícula de gráficos que se rellenan por columnas. De forma análoga podemos invocar `mfrow`, solo que entonces los gráficos se rellenan por filas.
+
+Por ejemplo, probamos a realizar un gráfico múltiple con 6 gráficos individuales que se rellenan por columnas, correspondientes a las funciones \\(y=x^i\\) para \\(i=1,\\dots,6\\).
+
+```{r}
+opar <- par(mfcol = c(2, 3))
+x <- (1:40)
+for (i in 1:6)
+  plot(x^i, xlab = "x", ylab = TeX(paste("x^", i, sep = "")), col = 2 * i)
+par(opar)
+```
+
+### Representaciones tridimensionales
+
+Es posible realizar gráficos tridimensionales mediante las funciones `persp`, `contour` e `image`. Todas ellas aceptan dos parámetros `x` e `y` que definen la rejilla sobre la que se mide el valor de una función, representada por una matriz de valores `z`. Consultando la ayuda de las mismas se puede obtener información sobre distintos parámetros relacionados con el ángulo de visión, la escala, etc. La función `persp` crea un gráfico en perspectiva, mientras que la función `contour` crea un mapa de nivel según las especificacones de los parámetros. Por su parte, la función `image` dibuja una representación utilizando un código de color o una escala de grises.
+
+Definimos una función genérica para dibujar con estas funciones tres representaciones alternativas de una misma función de \\(\\mathbb{R}^2\\) en \\(\\mathbb{R}\\).
+
+```{r}
+Dibuja_3D <- function(x = NA, y = NA, f) {
+  # Obtenemos los valores de Z mediante el producto externo con f
+  z <- outer(x, y, f)
+
+  # Tres representaciones tridimensionales
+  opar <- par(mfrow = c(1, 3))
+  image(x, y, z)
+  contour(x, y, z, col = "blue")
+  persp(x, y, z)
+  par(opar)
+}
+```
+
+La probamos para representar un par de funciones trigonométricas.
+
+```{r}
+f1 <- function(x, y) sin(x * y)
+f2 <- function(x, y) sin(x + y) * cos(x - y)
+
+x <- -5:5
+Dibuja_3D(x, x, f1)
+Dibuja_3D(x, x, f2)
+```
+
+## Funciones para dibujar en gráficas
+
+También tenemos funciones que nos permiten dibujar símbolos, figuras y curvas en una gráfica.
+
+### La función `symbols`
+
+Pasamos a la función `symbols`, que permite dibujar símbolos como círculos, cuadrados, rectángulos, estrellas, termómetros y cajas en una posición determinada de un gráfico, indicando su tamaño y su color. Por ejemplo, vamos a generar 15 valores de la distribución uniforme entre 0 y 15 y los representamos mediante círculos de colores.
+
+```{r}
+n <- 15
+x <- 1:n
+palette(rainbow(n))
+z <- runif(15)
+symbols(x, z, circles = z, xlim = c(-3, 19), ylim = c(0, 1.5), bg = 1:n)
+```
+
+También podemos dibujar unos cuadrados, por ejemplo.
+
+```{r}
+symbols(x, z, squares = z, xlim = c(-3, 19), ylim = c(0, 1.5), bg = 1:n)
+```
+
+### La función `polygon`
+
+También tenemos la función `polygon`, que dibuja polígonos definidos por sus vértices, sobre un gráfico ya existente. Para ello especificamos en dos vectores `x` e `y` las coordenadas de los vértices del polígono.
+
+Por ejemplo, podemos dibujar un cuadrado y un rombo, realizando primero un gráfico con `type = "n"` que defina las medidas pero sin representar ningún punto.
+
+```{r}
+x <- c(1, 9)
+plot(x, x, type = "n")
+polygon(
+  c(2, 4, 4, 2, NA, 6, 7, 6, 5),
+  c(2, 2, 4, 4, NA, 6, 7, 8, 7),
+  density = c(10, 20), angle = c(-45, 45),
+  col = c("red", "blue"))
+```
+
+### La función `curve`
+
+La función `curve` nos permite representar la gráfica de una función en un intervalo concreto. Sus argumentos más relevantes son:
+
+- `expr` es una expresión que corresponde a una función de `x` o el nombre de una función predefinida (`sin`, `log`, ...).
+- `from`, `to` determinan el intervalo en que se realizará la gráfica.
+- `n [=101]` es el número de puntos que se dibujarán.
+- `add [=FALSE]` indica si el gráfico se añade o no al gráfico actual.
+- `type [="l"]` indica el tipo de gráfico, predeterminadamente es líneas.
+- `xlim [=NULL]` es un vector numérico de longitud 2, que si se especifica indica los límites del gráfico.
+
+Podemos superponer la gráfica de algunas funciones elementales. Aprovechamos para comentar cómo añadir leyendas a nuestros gráficos. Podemos emplear la función `legend` y proporcionarle las etiquetas y los colores que queramos.
+
+```{r}
+curve(sin(x), -pi, pi, col = "red", ylab = "f(x)")
+curve(cos(x), -pi, pi, add = T, col = "blue")
+curve(exp(x - pi), -pi, pi, add = T, col = "darkgreen", lty = 2)
+legend(-pi, 1, legend = c("sin(x)", "cos(x)", "exp(x - pi)"),
+  col = c("red", "blue", "darkgreen"), lty = c(1, 1, 2), cex = 0.8)
+```
+
+### Las funciones `lines` y `points`
+
+Estas dos funciones nos permiten añadir puntos o líneas a un gráfico definido previamente, aceptando como parámetros las coordenadas `x` e `y`. Si alguno de los puntos es `NA`, no se dibuja, y en el caso de las líneas se produce una ruptura. Además, con el parámetro gráfico `pch` podemos seleccionar símbolos especiales para representar cada punto.
+
+A modo de ejemplo, generamos 20 valores de pseudoaleatorios de una normal tipificada, los representamos, y añadimos líneas y puntos.
+
+```{r}
+x <- rnorm(20)
+opar <- par(mfrow = c(1, 2))
+plot(x, xlab = "Tiempo", ylab = "Ruido")
+plot(x, xlab = "Tiempo", ylab = "Ruido")
+lines(x, col = "blue")
+points(x, col = "red", pch = 5)
+par(opar)
+```
+
+## Funciones para representación de datos
+
+Por último, estudiamos las funciones que nos permiten presentar unos datos y realizar un estudio visual de los mismos. Estas funciones son muy útiles de cara a transmitir información y conclusiones tanto a un público especializado como no especializado.
+
+Para ejemplificar estos gráficos vamos a cargar y añadir durante esta sección una hoja de datos de prueba:
+
+```{r}
+datos2 <-
+  read.table(
+    "http://www.ugr.es/local/andresgc/Datos2.txt",
+    header = T, as.is = F)
+attach(datos2)
+```
+
+Algunas de las funciones que ya hemos estudiado también pueden ser útiles en este caso. Por ejemplo, gracias a la función `plot` podemos obtener todas las parejas de gráficos bidimensionales de las variables incluidas en nuestra hoja de datos.
+
+```{r}
+plot(datos2[2:5])
+```
+
+También podemos, por ejemplo, representar los valores de altura frente a peso y marcar de un modo distinto los hombres y las mujeres, uniendo con tramos rectos los elementos de cada grupo.
+
+```{r}
+Mujer <- Sexo == "M"
+plot(Altura, Peso)
+points(Altura[Mujer], Peso[Mujer], type = "p",
+  pch = 3, col = "blue")
+points(Altura[!Mujer], Peso[!Mujer], type = "p",
+  pch = 4, col = "yellow")
+lines(c(Altura[Mujer], NA, Altura[!Mujer]),
+  c(Peso[Mujer], NA, Peso[!Mujer]),
+  type = "b", col = "red")
+```
+
+### La función `hist`
+
+La función `hist` genera y devuelve un histograma de los datos suministrados, y además lo dibuja si se indica como parámetro `plot = T`. Destacamos los siguientes argumentos:
+
+- `x` es el vector que contiene los valores para los que se realizará el histograma.
+- `breaks` son los puntos de corte que definen los intervalos y pueden venir dados directamente, o por el número de intervalos, o por una cadena de caracteres que indican uno de los varios algoritmos existentes para construir los intervalos, o por una función que calcule el número de intervalos.
+- `freq` es una variable de tipo lógico que indica si se representan frecuencias absolutas (`TRUE`) o relativas (`FALSE`).
+- `include.lowest` es una variable de tipo lógico que indica en que intervalo se incluyen los puntos que coincidan con el extremo del intervalos.
+- `right` es una variable de tipo lógico que indica si los intervalos son cerrados por la derecha.
+- `density` es el número de líneas por pulgada para hacer sombreados.
+- `angle` es la pendiente en grados para las líneas de sombreado.
+- `col` es el color con que se rellenan las barras.
+- `border` es el color con que se dibujan las barras.
+
+Podemos por ejemplo mostrar un histograma de alguna de las columnas de nuestra hoja de datos:
+
+```{r}
+hist(Peso)
+```
+
+Las siguientes órdenes generan una muestra pseudoaleatoria de una normal tipificada, representan el histograma de los valores obtenidos y superponen el gráfico de la normal tipificada.
+
+```{r}
+hist(rnorm(100), col = "red", freq = F, xlim = c(-5, 5),
+  ylim = c(0, dnorm(0) * 1.2), xlab = "",
+  ylab = "Densidad", main = "Muestra y Población")
+curve(dnorm(x), -5, 5, add = T, col = "blue")
+```
+
+### La función `barplot`
+
+La función `barplot` nos permite generar graficos de barras de muy diversas formas. Podemos invocar la orden `example(barplot)` para hacernos una idea de las posibilidades. Por ejemplo, generamos 100 números pseudoaleatorios de una distribución de Poisson  de parámetro \\(\\lambda = 6\\), realizamos un conteo de frecuencias y lo representamos con barras de diferentes colores:
+
+```{r}
+t <- table(n <- rpois(100, lambda = 6))
+barplot(t, col = heat.colors(20))
+```
+
+### La función `bloxplot`
+
+Esta función realiza gráficos de tipo *box-and-whiskers*. De nuevo podemos ver ejemplos de uso con `example(bloxplot)`. Realizamos uno comparando el peso de los hombres y el de las mujeres a partir de nuestra hoja de datos.
+
+```{r}
+boxplot(Peso ~ Sexo, names = c("Mujer", "Hombre"), col = c("blue", "red"))
+```
+
+También podemos estudiar, por ejemplo, la relación entre altura y sexo, realizando esta vez diagramas de caja con melladuras.
+
+```{r}
+boxplot(Altura ~ Sexo, notch = T, col = c("blue", "red"))
+```
+
+### La función `pairs`
+
+Esta función crea una figura que contiene todos los diagramas de dispersión de cada variable frente a las restantes, de forma similar a lo que hacía la función `plot` aplicada a una hoja de datos. Es posible referirse a la diagonal, el triángulo inferior y el triángulo superior del conjunto de paneles mediante `diag.panel`, `lower.panel` y `upper.panel`, respectivamente.
+
+Puesto que podemos definir la función de representación, se pueden construir gráficos con modificaciones a partir de esta función.
+
+```{r}
+# Incluye histogramas en la diagonal
+panel.hist <- function(x, ...) {
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5))
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y / max(y)
+  rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
+}
+
+pairs(datos2[2:5], panel = panel.smooth,
+  diag.panel = panel.hist, cex.labels = 1.5,
+  font.labels = 2)
+```
+```{r}
+# Escribe correlaciones absolutas en los paneles superiores,
+# de tamaño proporcional a los valores
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor) {
+usr <- par("usr"); on.exit(par(usr))
+par(usr = c(0, 1, 0, 1))
+r <- abs(cor(x, y))
+txt <- format(c(r, 0.123456789), digits = digits)[1]
+txt <- paste(prefix, txt, sep = "")
+if (missing(cex.cor)) cex <- 0.8 / strwidth(txt)
+text(0.5, 0.5, txt, cex = cex * r)
+}
+
+pairs(datos2[2:5], lower.panel = panel.smooth,
+  upper.panel = panel.cor)
+```
+
+### La función `pie`
+
+Mediante la función `pie` podemos crear diagramas de sectores o *pie charts*. Sus parámetros son:
+
+- `x` es un vector de valores proporcionales al tamaño de cada sector.
+- `labels` es un vector de etiquetas de los sectores.
+- `shadow` es un vector lógico que indica qué efecto de sombreado debe aplicarse a un gráfico con colores.
+- `edges` es el número de vértices de un polígono que aproxima al círculo.
+- `radius` radio del círculo respecto del tamaño del gráfico.
+- `col` vector de colores para cada sector.
+- `main` título del gráfico.
+- `...` parámetros gráficos adicionales de la función `par`.
+
+Por ejemplo, construimos un vector de caracteres que represente las provincias de nacimiento de las personas de nuestra hoja de datos, y realizamos un diagrama de sectores aplicado al conteo de frecuencias de las mismas:
+
+```{r}
+Provincia<- c("GR", "CO", "GR", "GR", "HU", "GR", "GR",
+  "GR", "AL", "GR", "GR", "GR", "GR", "GR", "JA", "GR", "GR")
+pie(table(Provincia),
+  col = c("red", "blue", "yellow", "green", "purple"),
+  main = "Provincias de nacimiento")
+```
+
+Podemos definir ahora una función para eliminar la necesidad de realizar el conteo de frecuencias. Además, permitimos que se dibujen los gráficos un número arbitrario de veces, y realizamos las comprobaciones pertinentes sobre los parámetros de entrada.
+
+```{r}
+Tarta <- function(var = "", filas = 2, columnas = 2, title = "", ...) {
+  # Comprobación del primer argumento
+  if (var == "")
+    stop("Necesitas una variable")
+
+  # Comprobación del resto de argumentos
+  filas <- as.integer(filas)
+  columnas <- as.integer(columnas)
+  if (filas < 1) stop("El número de filas es < 1")
+  if (columnas < 1) stop("El número de columnas es < 1")
+
+  # Dibujamos los gráficos
+  colores <- rainbow(length(unique(var)))
+  opar <- par(mfrow = c(filas, columnas), ...)
+  for (i in 1:(filas * columnas)) {
+    pie(table(var), col = colores, main = title)
+  }
+  par(opar)
+}
+```
+
+Probamos a realizar una llamada errónea para ver que funciona la comprobación de errores, y luego pintamos un par de gráficos como antes.
+
+```{r}
+Tarta(Provincia, -1, 1)
+Tarta(Provincia, 1,, "Provincias de nacimiento",
+  pin = c(3, 2), mar = c(1, 1, 1, 1))
+```
+
+### La función `stars`
+
+Esta función nos permite realizar un diagrama de estrellas, una por individuo, con información de todas las variables. Sus argumentos más importantes son:
+
+- `x` es una matriz de datos.
+- `full` valor lógico que indica si los símbolos deben ocupar un círculo completo o sólo el semicírculo superior.
+- `scale` valor lógico que indica si las columnas deben homogeneizarse al intervalo `(0,1)`.
+- `radius` valor lógico que indica si deben dibujarse los radios.
+- `labels` etiquetas de los dibujos. El valor predeterminado es el nombre del individuo.
+
+Realizamos un par de diagramas de estrella a partir de nuestros datos, uno sin segmentos y otro con segmentos.
+
+```{r}
+stars(matrix(c(Peso, Altura, Edad), ncol = 3),
+  main = "Diagrama de estrellas 1")
+stars(matrix(c(Peso, Altura, Edad), ncol = 3),
+  main = "Diagrama de estrellas 2", draw.segments = T)
+```
+
+Una vez que hemos terminado de trabajar con nuestra hoja de datos, la eliminamos de la lista.
+
+```{r}
+detach(datos2)
+```
+
+## Experimentación con `iris`
+
+A modo de resumen, realizamos una pequeña experimentación con el célebre conjunto de datos `iris`, que se encuentra precargado en `R`.
+
+En primer lugar echamos un vistazo a los datos y a la función de ayuda `help(iris)`. Como podemos observar, disponemos de 150 ejemplos divididos en tres clases de flores: setosa, virginica y versicolor. Además, para cada uno de ellos tenemos información numérica de cuatro características:  el ancho y el largo de sépalo, y el ancho y el largo del pétalo.
+
+```{r}
+attach(iris)
+cat("Número de ejemplos: ", dim(iris)[[1]])
+head(iris, 3)
+```
+
+Vemos un resumen de los datos aprovechando la función modificada que hicimos para mostrar histogramas en la diagonal:
+
+```{r}
+pairs(iris[1:4], panel = panel.smooth,
+  diag.panel = panel.hist, cex.labels = 1.2,
+  font.labels = 2)
+```
+
+También podemos mostrar un diagrama de sectores para estudiar la distribución de clases, por ejemplo.
+
+```{r}
+Tarta(Species, 1, 1, "Distribución de clases", ...)
+```
+
+Estudiamos también un *boxplot* de las características numéricas frente a las especies.
+
+```{r}
+opar <- par(mfrow = c(2, 2))
+boxplot(Sepal.Length ~ Species, iris,
+  main = "Longitud de sépalo vs especie", col = "lightpink3")
+boxplot(Sepal.Width ~ Species, iris,
+  main = "Anchura de sépalo vs especie", col = "antiquewhite1")
+boxplot(Petal.Length ~ Species, iris,
+  main = "Longitud de pétalo vs especie", col = "lightskyblue4")
+boxplot(Petal.Width ~ Species, iris,
+  main = "Anchura de pétalo vs especie", col = "orange1")
+par(opar)
+```
+
+Podemos intentar visualizar algunas de las características de las que disponemos, por ejemplo el ancho y el largo del pétalo, agrupando las clases por colores. Vemos cómo se forman tres grupos más o menos diferenciados.
+
+```{r}
+plot(Petal.Length, Petal.Width,
+  col = c("red", "green", "blue")[Species], pch = 19)
+legend(1, 2.5, legend = unique(Species),
+  col = c("red", "green", "blue"), pch = 19)
+detach(iris)
+```

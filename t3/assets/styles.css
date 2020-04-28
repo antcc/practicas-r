@@ -2,6 +2,10 @@
 
 @import url(https://fonts.googleapis.com/css?family=Lato:300italic,700italic,300,700);
 
+.MathJax {
+font-size: 1em !important;
+}
+
 body {
   padding:50px;
   font:15px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -51,7 +55,7 @@ blockquote {
   font-style:italic;
 }
 
-code, pre {
+code {
   font-family: monospace;
   color:#777;
 }
@@ -208,6 +212,9 @@ footer {
   bottom: 0px;
 }
 
+.error {
+  color: red !important;
+}
 .source, .output, .warning, .error, .message {
 	padding: 0 0 !important;
   border:none !important;
