@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<!--- PLANTILLA ORIGINAL DE https://hplgit.github.io/teamods/writing_reports/_static/report_github_minimal.html --->
+<head>
+<link rel="shortcut icon" type="image/png" href="assets/r.png"/>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Análisis estadísticos elementales</title>
+
+    <script id="MathJax-script" async src="assets/mathjax.js"></script>
+    <link rel="stylesheet" href="assets/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Análisis estadísticos elementales</h1>
+
+<p>Ejemplos de algunos análisis estadísticos con R.</p>
+
+        <!-- picture below the heading on the left -->
+	<p style="text-align:center;"><a href="https://www.r-project.org/" target="_blank"><img src="assets/r.png" width="150" class="center"></a></p>
+
+  <!--- Aquí debería ir el índice -->
+  <div id="toc_container">
+
+<h3 class="toc_title" style="margin-top:30px;">Contenidos</h3>
+<ul class="toc_list">
+  <li><a href="#funciones-de-densidad-y-distribución">Funciones de densidad y distribución</a></li>
+  <ul>
+    <li><a href="#la-distribución-normal">La distribución normal</a></li>
+    <li><a href="#la-distribución-uniforme">La distribución uniforme</a></li>
+    <li><a href="#la-distribución-de-cauchy">La distribución de Cauchy</a></li>
+  </ul>
+  <li><a href="#estadística-descriptiva">Estadística descriptiva</a></li>
+  <li><a href="#tests-estadísticos">Tests estadísticos</a></li>
+  <li><a href="#regresión-lineal">Regresión lineal</a></li>
+<li><a href="#clasificación-binaria">Clasificación binaria</a></li>
+</ul>
+</div>
+
+      </header>
+
+      <!-- Here goes the main page --->
+      <section>
+
+     <button onclick="topFunction()" id="myBtn" title="Subir">Subir</button>
+
+<script>
+//Get the button:
+mybutton = document.getElementById("myBtn");
+
+// When the user scrolls down 400px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+  if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+    mybutton.style.display = "block";
+  } else {
+    mybutton.style.display = "none";
+  }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+  document.body.scrollTop = 0; // For Safari
+  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+}
+</script>
+
+<!-- ------------------- main content ---------------------- -->
+
+<h2 id="funciones-de-densidad-y-distribución">Funciones de densidad y distribución</h2>
+<p>Estudiamos primero cómo representar algunas funciones de densidad y distribución.</p>
+<h3 id="la-distribución-normal">La distribución normal</h3>
+<p>Recordamos que la distribución normal de media \(\mu\) y desviación típica \(\sigma\) tiene como función de densidad
+\[
+f(x) = \frac{1}{ \sigma\sqrt{2 \pi}} e^{\frac{-(x - \mu)^2}{2 \sigma^2}}.
+\]</p>
+<p>Para pintar las funciones de densidad y de distribución de una normal usamos <code>dnorm</code> y <code>pnorm</code>, respectivamente. Los argumentos de <code>dnorm</code> son:</p>
+<ul>
+<li><code>x</code>: vector de cuantiles.</li>
+<li><code>mean [=0]</code>: media de la distribución.</li>
+<li><code>sd [=1]</code>: desviación típica.</li>
+<li><code>log [=FALSE]</code>: controla si se utiliza escala logarítmica.</li>
+</ul>
+<p>Por su parte, los de <code>pnorm</code> son muy similares:</p>
+<ul>
+<li><code>x</code>: vector de cuantiles.</li>
+<li><code>mean [=0]</code>: media de la distribución.</li>
+<li><code>sd [=1]</code>: desviación típica.</li>
+<li><code>lower.tail [=TRUE]</code>: indica si se muestra \(P[X \leq x]\) ó \(P[X &gt; x]\).</li>
+<li><code>log.p [=FALSE]</code>: controla si se utiliza escala logarítmica.</li>
+</ul>
+<p>Para saber el rango en el que pintar las curvas, utilizamos la función <code>qnorm</code>, que nos proporciona el valor cuantil de la normal correspondiente a la probabilidad que le especifiquemos. Escribimos una función que recoja todo el proceso.</p>
+<!--begin.rcode fig.width=6, fig.height=6, fig.align='center'
+# Dibuja la función de densidad y de distribución de una normal estándar
+dibuja_normal <- function(n = 30, p = 0.001) {
+  n <- as.integer(n)
+  if (n < 10) stop("Hacen falta más números")
+
+  # Establecemos los límites
+  a <- qnorm(p)
+  b <- qnorm(1-p)
+  opar <- par(mfrow = c(1, 2))
+
+  # Dibujamos la función de densidad y de distribución
+  x <- seq(a, b,, n)
+  plot(x, dnorm(x), type = "l", ylab = "f(x)", col = "red")
+  plot(x, pnorm(x), type = "l", ylab = "F(x)", col = "blue")
+  par(opar)
+}
+
+dibuja_normal()
+end.rcode-->
+<h3 id="la-distribución-uniforme">La distribución uniforme</h3>
+<p>La distribución uniforme en un intervalo (([a,b]\) tiene por función de densidad \[ f(x) = \frac{1}{b-a}. \]</p>
+<p>De igual forma que hemos hecho para la distribución normal, podemos representar las funciones de densidad y distribución de la uniforme, esta vez empleando las funciones <code>dunif</code>, <code>punif</code> y <code>qunif</code>. Sus argumentos son los análogos a los de la normal, cambiando la media y la desviación típica por los extremos del intervalo.</p>
+<!--begin.rcode fig.width=6, fig.height=6, fig.align='center'
+# Dibuja la función de densidad y de distribución de una uniforme [0, 1]
+dibuja_unif <- function(n = 30, p = 0.001) {
+  n <- as.integer(n)
+  if (n < 10) stop("Hacen falta más números")
+
+  # Establecemos los límites
+  a <- qunif(p)
+  b <- qunif(1 - p)
+  opar <- par(mfrow = c(1, 2))
+
+  # Dibujamos la función de densidad y de distribución
+  x <- seq(a, b,, n)
+  plot(x, dunif(x), type = "l", ylab = "f(x)", col = "red")
+  plot(x, punif(x), type = "l", ylab = "F(x)", col = "blue")
+  par(opar)
+}
+
+dibuja_unif()
+end.rcode-->
+<h3 id="la-distribución-de-cauchy">La distribución de Cauchy</h3>
+<p>Si invocamos la ayuda <code>?Distributions</code> podemos ver todas las distribuciones disponibles en R. Elegimos por ejemplo la distribución de Cauchy, definida por dos parámetros: la localización (l) y la escala (s), que por defecto valen 0 y 1. Su función de densidad es \[ f(x) = \frac{1}{\pi s (1 + (\frac{x-l}{s})^2)} \]</p>
+<!--begin.rcode fig.width=6, fig.height=6, fig.align='center'
+# Dibuja la función de densidad y de distribución de Cauchy con l=-2, s=0.5
+dibuja_cauchy <- function(n = 30, p = 0.1) {
+  n <- as.integer(n)
+  if (n < 10) stop("Hacen falta más números")
+
+  # Establecemos los límites
+  a <- qcauchy(p, -2, 0.5)
+  b <- qcauchy(1 - p, -2, 0.5)
+  opar <- par(mfrow = c(1, 2))
+
+  # Dibujamos la función de densidad y de distribución
+  x <- seq(a, b,, n)
+  plot(x, dcauchy(x, -2, 0.5), type = "l", ylab = "f(x)", col = "red")
+  plot(x, pcauchy(x, -2, 0.5), type = "l", ylab = "F(x)", col = "blue")
+  par(opar)
+}
+
+dibuja_cauchy()
+end.rcode-->
+<h2 id="estadística-descriptiva">Estadística descriptiva</h2>
+<p>En este apartado vamos a realizar una estadística descriptiva con el célebre conjunto de datos <code>iris</code>, que se encuentra de forma predeterminada en R. La mayoría de funciones gráficas usadas ya se explicaron con detalle en la anterior entrega.</p>
+<p>En primer lugar echamos un vistazo a los datos y a la función de ayuda <code>help(iris)</code>. Como podemos observar, disponemos de 150 ejemplos divididos en tres clases de flores: setosa, virginica y versicolor. Además, para cada uno de ellos tenemos información numérica de cuatro características: el ancho y el largo de sépalo, y el ancho y el largo del pétalo.</p>
+<!--begin.rcode
+attach(iris)
+cat("Número de ejemplos: ", dim(iris)[[1]])
+end.rcode-->
+<p>Veamos un resumen de los datos, observando los cuartiles, la media, y los valores máximo y mínimo de cada atributo numérico. También vemos el número de ejemplos de cada clase para las especies.</p>
+<!--begin.rcode
+summary(iris)
+end.rcode-->
+<p>Nos podría interesar aislar la media, la mediana y la varianza de los datos:</p>
+<!--begin.rcode
+for (i in 1:4) {
+  cat("Media de", names(iris)[i], ":", mean(iris[, i]), "\n")
+  cat("Mediana de", names(iris)[i], ":", median(iris[, i]), "\n")
+  cat("Varianza de", names(iris)[i], ":", var(iris[, i]), "\n\n")
+}
+end.rcode-->
+<p>Vemos que la media y la mediana de todos los datos están cercanas salvo para la longitud del pétalo, que es además la que tiene mayor varianza. Una cosa interesante que podemos hacer es mirar la matriz de covarianzas y correlaciones de los atributos:</p>
+<!--begin.rcode
+var(iris[1:4])
+cor(iris[1:4])
+end.rcode-->
+<p>Obervamos que hay una correlación fuerte entre el ancho y la longitud del sépalo, o que el atributo de la longitud del pétalo tiene una varianza bastante más grande en comparación con el resto.</p>
+<p>Podemos ver un resumen de los datos aprovechando la función modificada que hicimos en la práctica anterior para mostrar histogramas en la diagonal. En el resto de casillas se muestran las combinaciones de las distintas columnas, excluyendo las especies.</p>
+<!--begin.rcode echo = FALSE
+# Incluye histogramas en la diagonal
+panel.hist <- function(x, ...) {
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5))
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y / max(y)
+  rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
+}
+end.rcode-->
+<!--begin.rcode fig.width=6, fig.height=6, fig.align='center'
+pairs(iris[1:4], diag.panel = panel.hist,
+  cex.labels = 1.2, font.labels = 2)
+end.rcode-->
+<p>También podemos mostrar un diagrama de sectores para estudiar la distribución de clases, que vemos que es equilibrada.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+pie(table(Species), main = "Distribución de clases",
+  col = c("red", "green3", "blue"))
+end.rcode-->
+<p>Estudiamos también un <em>boxplot</em> de las características numéricas frente a las especies. La variabilidad es menor en general en la especie <em>setosa</em>, aunque en el ancho del sépalo es la <em>virginica</em> la que presenta menor variabilidad.</p>
+<!--begin.rcode fig.width=6, fig.height=6, fig.align='center'
+opar <- par(mfrow = c(2, 2))
+boxplot(Sepal.Length ~ Species, iris,
+  main = "Longitud de sépalo vs especie", col = "lightpink3")
+boxplot(Sepal.Width ~ Species, iris,
+  main = "Anchura de sépalo vs especie", col = "antiquewhite1")
+boxplot(Petal.Length ~ Species, iris,
+  main = "Longitud de pétalo vs especie", col = "lightskyblue4")
+boxplot(Petal.Width ~ Species, iris,
+  main = "Anchura de pétalo vs especie", col = "orange1")
+par(opar)
+end.rcode-->
+<p>Y ahora podemos ver un diagrama de barras de la longitud del pétalo frente a las especies. Vemos cómo la setosa tiene la menor longitud, seguida de la versicolor, y la virginica es la que más tiene.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+tbl <- with(iris, table(Petal.Length, Species), 1)
+barplot(t(tbl), legend = TRUE, col = c("red", "green3", "blue"),
+  main = "Longitud de pétalo por especies")
+end.rcode-->
+<p>Podemos intentar visualizar algunas de las características de las que disponemos, por ejemplo el ancho y el largo del pétalo, agrupando las clases por colores. Vemos cómo se forman tres grupos más o menos diferenciados.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+plot(Petal.Length, Petal.Width,
+  col = c("red", "green3", "blue")[Species], pch = 19)
+legend(1, 2.5, legend = unique(Species),
+  col = c("red", "green3", "blue"), pch = 19)
+end.rcode-->
+<p>Como novedad introducimos la función <code>stem</code>, que produce un diagrama de tallo-hojas de los valores que le proporcionemos. Se trata de una representación similar en cierto sentido a un histograma, que nos permite estudiar la distribución de los datos. También tiene otros parámetros que definen la escala (<code>scale</code>), el ancho (<code>width</code>) o la tolerancia (<code>atom</code>) a la hora de pintarlo.</p>
+<!--begin.rcode
+stem(Petal.Length)
+stem(Sepal.Width)
+end.rcode-->
+<p>La función <code>density</code> nos permite realizar una estimación no paramétrica de la función de densidad de la distribución de los datos. Admite como parámetros la variable que deseamos estimar y una serie de parámetros opcionales, entre los que detacan el número de puntos equiespaciados que queremos usar para la estimación, <code>n</code>.</p>
+<p>Por ejemplo, estimamos la densidad del ancho de pétalo usando un número de puntos distintos, y superponemos la estimación con su histograma (mostrando en el eje Y la densidad en vez de la frecuencia). Vemos que se ajusta bastante bien a la muestra.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+hist(Sepal.Width, prob = T)
+lines(density(Sepal.Width, n = 20), col = "red")
+lines(density(Sepal.Width, n = 50), col = "blue")
+end.rcode-->
+<p>Hacemos lo mismo ahora para la longitud del pétalo</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+hist(Sepal.Length, prob = T)
+lines(density(Sepal.Length, n = 20), col = "red")
+lines(density(Sepal.Length, n = 50), col = "blue")
+end.rcode-->
+<h2 id="tests-estadísticos">Tests estadísticos</h2>
+<p>Vamos a ver cómo podemos hacer un <em>Test-T</em> con una o dos muestras. En el primer caso podemos intentar comparar la media de la muestra con un valor fijo \(\mu_0\), y en el segundo podemos ver si la diferencia en la media de dos variables es estadísticamente significativa. Para ello usamos la función <code>t.test</code>, que cuyos parámetros más importantes son:</p>
+<ul>
+<li><code>x</code>: vector numérico de datos.</li>
+<li><code>y</code>: vector numérico de datos (opcional).</li>
+<li><code>alternative</code>: un string especificando la hipótesis alternativa. Puede ser “two.sided” (por defecto), “greater” ó “less”.</li>
+<li><code>mu</code>: un número indicando el valor real de la media, o la diferencia de medias. Por defecto es 0.</li>
+<li><code>var.equal</code>: variable lógica que indica si en el caso de dos muestras las varianzas se consideran iguales.</li>
+<li><code>conf.level</code>: valor de confianza del intervalo. Por defecto 0.95.</li>
+</ul>
+<p>En nuestro caso, podemos estudiar si la media de alguna de las variables del conjunto es 0.</p>
+<!--begin.rcode
+t.test(Sepal.Length)
+end.rcode-->
+<p>Vemos que el <code>p-value</code> es muy pequeño (&lt;&lt; 0.05), por lo que podemos rechazar la hipótesis nula y aceptar que la media de la población no es 0. Obtenemos también la información de que esta media se encuentra en el intervalo [5.7097, 5.9770] con una confianza del 95%.</p>
+<p>Podemos también hacer un test con dos muestras para ver si la media de dos variables difiere de forma estadísticamnete significativa.</p>
+<!--begin.rcode
+t.test(Sepal.Length, Sepal.Width)
+end.rcode-->
+<p>De nuevo el p-value es menor que 0.05, por lo que podemos aceptar que la diferencia de medias es estadísticamente significativa. Podemos ahora realizar un test modificado en el que asumimos que ambas variables tienen la misma varianza, aunque obtenemos los mismos resultados.</p>
+<!--begin.rcode
+t.test(Sepal.Length, Sepal.Width, var.equal = T)
+end.rcode-->
+<p>Podríamos haber hecho un test-F para estudiar si el cociente de las varianzas es distinto de 1 de forma significativa, comprobando que efectivamente es así. Esto nos lo permite la función <code>var.test</code>, con argumentos similares a <code>t.test</code>.</p>
+<!--begin.rcode
+var.test(Sepal.Length, Sepal.Width)
+end.rcode-->
+<h2 id="regresión-lineal">Regresión lineal</h2>
+<p>En este apartado estudiaremos como hacer regresión lineal con la función <code>lm</code>. Esta función acepta como primer argumento una <em>fórmula</em> o relación entre unas variables, y realiza una regresión lineal con ellas. También acepta que se especifiquen los datos de entrada con <code>data</code> o que se proporcionen unos pesos para la regresión con <code>weights</code>.</p>
+<p>Recuperamos la representación que hicimos del ancho de pétalo frente a la longitud del mismo, y realizar una regresión lineal de dichos datos.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+plot(Petal.Length, Petal.Width,
+  col = c("red", "green3", "blue")[Species], pch = 19)
+legend(1, 2.5, legend = unique(Species),
+  col = c("red", "green3", "blue"), pch = 19)
+reg <- lm(Petal.Width ~ Petal.Length)
+abline(reg, col = "orange")
+end.rcode-->
+<p>La recta de regresión la vemos en naranja, pintada gracias a la función <code>abline</code>. Esta función añade una recta al plot actual, definida por los valores de pendiente y corte con el eje de ordenadas del objto <code>reg</code>, que recoge los resultados de la regresión. Otra opción sería haber dibujado las predicciones con <code>predict</code>, tal que así: <code>plot(predict(reg), Petal.Length)</code>.</p>
+<p>Podemos ver con más detalle esta regresión con <code>summary</code>, como información sobre la distribución de los residuos, los coeficientes o el valor de \(R^2\), que es 0.9271, por lo que el ajuste es bastante bueno. Si solo queremos ver los coeficientes, podemos extraerlos directamente del objeto <code>reg</code>.</p>
+<!--begin.rcode
+summary(reg)
+reg$coef
+end.rcode-->
+<p>Si invocamos la función <code>plot</code> sobre el objeto <code>reg</code> nos muestra unas gráficas relacionadas con los residuos, que nos permiten evaluar también la bondad del ajuste.</p>
+<!--begin.rcode fig.width=6, fig.height=6, fig.align='center'
+opar <- par(mfrow = c(2, 2))
+plot(reg)
+par(opar)
+end.rcode-->
+<h2 id="clasificación-binaria">Clasificación binaria</h2>
+<p>Por último, vamos a ver un caso simple en el que podemos realizar clasificación binaria a partir de regresión. En concreto, nos quedamos con dos clases del dataset <code>iris</code>, por ejemplo setosa y virginica. Convertimos las clases en etiquetas numéricas, que en este caso serían 1 y 3, respectivamente.</p>
+<!--begin.rcode
+iris_2class <- iris[Species != "versicolor", ]
+iris_2names <- unique(iris_2class$Species)
+iris_2class <- transform(iris_2class, Species = as.numeric(Species))
+iris_2species <- iris_2class[, "Species"]
+end.rcode-->
+<p>Ahora, realizamos una regresión lineal en tres dimensiones, tomando como variable independiente la de las clases o etiquetas y como variables dependientes la longitud del pétalo (\(x_1\)) y el ancho del pétalo (\(x_2\)). Si proyectamos el plano de regresión que nos sale por la curva de nivel 2 (la que separa las clases 1 y 3), obtendremos los pesos adecuados para una recta que separa las clases en el plano. En concreto, tras la regresión obtenemos unos pesos \( (w_0, w_1, w_2) \) que definen el plano \[ y = w_0 + w_1x_1 + w_2x_2, \]</p>
+<p>y queremos proyectarlo en la recta \[ w_0 + w_1x_1 + w_2x_2 = 2. \]</p>
+<p>Como al pintar los datos estamos mostrando \(x_2\) frente a \(x_1\), despejamos \(x_2\) de la ecuación anterior para obtener la pendiente y el punto de corte con el eje Y de la recta deseada.</p>
+<!--begin.rcode fig.width=5, fig.height=5, fig.align='center'
+reg3D <- lm(iris_2species ~ iris_2class$Petal.Length + iris_2class$Petal.Width)
+a <- -reg3D$coef[2] / reg3D$coef[3]
+b <- (2 - reg3D$coef[1]) / reg3D$coef[3]
+
+plot(iris_2class$Petal.Length, iris_2class$Petal.Width,
+  col = c("red", "blue")[Species], pch = 19)
+legend(5.3, 0.6, legend = iris_2names,
+  col = c("red", "blue"), pch = 19)
+abline(b, a, col = "orange")
+end.rcode-->
+<p>Vemos como la recta divide el plano en dos regiones, en cada una de las cuales se encuentran los ejemplos de una clase distinta.</p>
+<!--begin.rcode
+detach(iris)
+end.rcode-->
+
+<!-- ------------------- end of main content --------------- -->
+
+      </section>
+
+      <footer>
+        Antonio Coín Castro
+        <p><small>Tema original de <a href="https://github.com/orderedlist">orderedlist</a></p><p></p>
+      </footer>
+
+    </div>
+</body></html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<!--- PLANTILLA ORIGINAL DE https://hplgit.github.io/teamods/writing_reports/_static/report_github_minimal.html --->
+<head>
+<style type="text/css">
+.inline {
+  background-color: #f7f7f7;
+  border:solid 1px #B0B0B0;
+}
+.error {
+	font-weight: bold;
+	color: #FF0000;
+}
+.warning {
+	font-weight: bold;
+}
+.message {
+	font-style: italic;
+}
+.source, .output, .warning, .error, .message {
+	padding: 0 1em;
+  border:solid 1px #F7F7F7;
+}
+.source {
+  background-color: #f5f5f5;
+}
+.left {
+  text-align: left;
+}
+.right {
+  text-align: right;
+}
+.center {
+  text-align: center;
+}
+.hl.num {
+  color: #AF0F91;
+}
+.hl.str {
+  color: #317ECC;
+}
+.hl.com {
+  color: #AD95AF;
+  font-style: italic;
+}
+.hl.opt {
+  color: #000000;
+}
+.hl.std {
+  color: #585858;
+}
+.hl.kwa {
+  color: #295F94;
+  font-weight: bold;
+}
+.hl.kwb {
+  color: #B05A65;
+}
+.hl.kwc {
+  color: #55aa55;
+}
+.hl.kwd {
+  color: #BC5A65;
+  font-weight: bold;
+}
+</style>
+<link rel="shortcut icon" type="image/png" href="assets/r.png"/>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Análisis estadísticos elementales</title>
+
+    <script id="MathJax-script" async src="assets/mathjax.js"></script>
+    <link rel="stylesheet" href="assets/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Análisis estadísticos elementales</h1>
+
+<p>Ejemplos de algunos análisis estadísticos con R.</p>
+
+        <!-- picture below the heading on the left -->
+	<p style="text-align:center;"><a href="https://www.r-project.org/" target="_blank"><img src="assets/r.png" width="150" class="center"></a></p>
+
+  <!--- Aquí debería ir el índice -->
+  <div id="toc_container">
+
+<h3 class="toc_title" style="margin-top:30px;">Contenidos</h3>
+<ul class="toc_list">
+  <li><a href="#funciones-de-densidad-y-distribución">Funciones de densidad y distribución</a></li>
+  <ul>
+    <li><a href="#la-distribución-normal">La distribución normal</a></li>
+    <li><a href="#la-distribución-uniforme">La distribución uniforme</a></li>
+    <li><a href="#la-distribución-de-cauchy">La distribución de Cauchy</a></li>
+  </ul>
+  <li><a href="#estadística-descriptiva">Estadística descriptiva</a></li>
+  <li><a href="#tests-estadísticos">Tests estadísticos</a></li>
+  <li><a href="#regresión-lineal">Regresión lineal</a></li>
+<li><a href="#clasificación-binaria">Clasificación binaria</a></li>
+</ul>
+</div>
+
+      </header>
+
+      <!-- Here goes the main page --->
+      <section>
+
+     <button onclick="topFunction()" id="myBtn" title="Subir">Subir</button>
+
+<script>
+//Get the button:
+mybutton = document.getElementById("myBtn");
+
+// When the user scrolls down 400px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+  if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+    mybutton.style.display = "block";
+  } else {
+    mybutton.style.display = "none";
+  }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+  document.body.scrollTop = 0; // For Safari
+  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+}
+</script>
+
+<!-- ------------------- main content ---------------------- -->
+
+<h2 id="funciones-de-densidad-y-distribución">Funciones de densidad y distribución</h2>
+<p>Estudiamos primero cómo representar algunas funciones de densidad y distribución.</p>
+<h3 id="la-distribución-normal">La distribución normal</h3>
+<p>Recordamos que la distribución normal de media \(\mu\) y desviación típica \(\sigma\) tiene como función de densidad
+\[
+f(x) = \frac{1}{ \sigma\sqrt{2 \pi}} e^{\frac{-(x - \mu)^2}{2 \sigma^2}}.
+\]</p>
+<p>Para pintar las funciones de densidad y de distribución de una normal usamos <code>dnorm</code> y <code>pnorm</code>, respectivamente. Los argumentos de <code>dnorm</code> son:</p>
+<ul>
+<li><code>x</code>: vector de cuantiles.</li>
+<li><code>mean [=0]</code>: media de la distribución.</li>
+<li><code>sd [=1]</code>: desviación típica.</li>
+<li><code>log [=FALSE]</code>: controla si se utiliza escala logarítmica.</li>
+</ul>
+<p>Por su parte, los de <code>pnorm</code> son muy similares:</p>
+<ul>
+<li><code>x</code>: vector de cuantiles.</li>
+<li><code>mean [=0]</code>: media de la distribución.</li>
+<li><code>sd [=1]</code>: desviación típica.</li>
+<li><code>lower.tail [=TRUE]</code>: indica si se muestra \(P[X \leq x]\) ó \(P[X &gt; x]\).</li>
+<li><code>log.p [=FALSE]</code>: controla si se utiliza escala logarítmica.</li>
+</ul>
+<p>Para saber el rango en el que pintar las curvas, utilizamos la función <code>qnorm</code>, que nos proporciona el valor cuantil de la normal correspondiente a la probabilidad que le especifiquemos. Escribimos una función que recoja todo el proceso.</p>
+<div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># Dibuja la función de densidad y de distribución de una normal estándar</span>
+<span class="hl std">dibuja_normal</span> <span class="hl kwb">&lt;-</span> <span class="hl kwa">function</span><span class="hl std">(</span><span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">30</span><span class="hl std">,</span> <span class="hl kwc">p</span> <span class="hl std">=</span> <span class="hl num">0.001</span><span class="hl std">) {</span>
+  <span class="hl std">n</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">as.integer</span><span class="hl std">(n)</span>
+  <span class="hl kwa">if</span> <span class="hl std">(n</span> <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl std">)</span> <span class="hl kwd">stop</span><span class="hl std">(</span><span class="hl str">&quot;Hacen falta más números&quot;</span><span class="hl std">)</span>
+
+  <span class="hl com"># Establecemos los límites</span>
+  <span class="hl std">a</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">qnorm</span><span class="hl std">(p)</span>
+  <span class="hl std">b</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">qnorm</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl opt">-</span><span class="hl std">p)</span>
+  <span class="hl std">opar</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">par</span><span class="hl std">(</span><span class="hl kwc">mfrow</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span> <span class="hl num">2</span><span class="hl std">))</span>
+
+  <span class="hl com"># Dibujamos la función de densidad y de distribución</span>
+  <span class="hl std">x</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">seq</span><span class="hl std">(a, b,, n)</span>
+  <span class="hl kwd">plot</span><span class="hl std">(x,</span> <span class="hl kwd">dnorm</span><span class="hl std">(x),</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;l&quot;</span><span class="hl std">,</span> <span class="hl kwc">ylab</span> <span class="hl std">=</span> <span class="hl str">&quot;f(x)&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;red&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">plot</span><span class="hl std">(x,</span> <span class="hl kwd">pnorm</span><span class="hl std">(x),</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;l&quot;</span><span class="hl std">,</span> <span class="hl kwc">ylab</span> <span class="hl std">=</span> <span class="hl str">&quot;F(x)&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">par</span><span class="hl std">(opar)</span>
+<span class="hl std">}</span>
+
+<span class="hl kwd">dibuja_normal</span><span class="hl std">()</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-1-1.png" title="plot of chunk unnamed-chunk-1" alt="plot of chunk unnamed-chunk-1" class="plot" /></div></div>
+<h3 id="la-distribución-uniforme">La distribución uniforme</h3>
+<p>La distribución uniforme en un intervalo (([a,b]\) tiene por función de densidad \[ f(x) = \frac{1}{b-a}. \]</p>
+<p>De igual forma que hemos hecho para la distribución normal, podemos representar las funciones de densidad y distribución de la uniforme, esta vez empleando las funciones <code>dunif</code>, <code>punif</code> y <code>qunif</code>. Sus argumentos son los análogos a los de la normal, cambiando la media y la desviación típica por los extremos del intervalo.</p>
+<div class="chunk" id="unnamed-chunk-2"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># Dibuja la función de densidad y de distribución de una uniforme [0, 1]</span>
+<span class="hl std">dibuja_unif</span> <span class="hl kwb">&lt;-</span> <span class="hl kwa">function</span><span class="hl std">(</span><span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">30</span><span class="hl std">,</span> <span class="hl kwc">p</span> <span class="hl std">=</span> <span class="hl num">0.001</span><span class="hl std">) {</span>
+  <span class="hl std">n</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">as.integer</span><span class="hl std">(n)</span>
+  <span class="hl kwa">if</span> <span class="hl std">(n</span> <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl std">)</span> <span class="hl kwd">stop</span><span class="hl std">(</span><span class="hl str">&quot;Hacen falta más números&quot;</span><span class="hl std">)</span>
+
+  <span class="hl com"># Establecemos los límites</span>
+  <span class="hl std">a</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">qunif</span><span class="hl std">(p)</span>
+  <span class="hl std">b</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">qunif</span><span class="hl std">(</span><span class="hl num">1</span> <span class="hl opt">-</span> <span class="hl std">p)</span>
+  <span class="hl std">opar</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">par</span><span class="hl std">(</span><span class="hl kwc">mfrow</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span> <span class="hl num">2</span><span class="hl std">))</span>
+
+  <span class="hl com"># Dibujamos la función de densidad y de distribución</span>
+  <span class="hl std">x</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">seq</span><span class="hl std">(a, b,, n)</span>
+  <span class="hl kwd">plot</span><span class="hl std">(x,</span> <span class="hl kwd">dunif</span><span class="hl std">(x),</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;l&quot;</span><span class="hl std">,</span> <span class="hl kwc">ylab</span> <span class="hl std">=</span> <span class="hl str">&quot;f(x)&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;red&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">plot</span><span class="hl std">(x,</span> <span class="hl kwd">punif</span><span class="hl std">(x),</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;l&quot;</span><span class="hl std">,</span> <span class="hl kwc">ylab</span> <span class="hl std">=</span> <span class="hl str">&quot;F(x)&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">par</span><span class="hl std">(opar)</span>
+<span class="hl std">}</span>
+
+<span class="hl kwd">dibuja_unif</span><span class="hl std">()</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-2-1.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" class="plot" /></div></div>
+<h3 id="la-distribución-de-cauchy">La distribución de Cauchy</h3>
+<p>Si invocamos la ayuda <code>?Distributions</code> podemos ver todas las distribuciones disponibles en R. Elegimos por ejemplo la distribución de Cauchy, definida por dos parámetros: la localización (l) y la escala (s), que por defecto valen 0 y 1. Su función de densidad es \[ f(x) = \frac{1}{\pi s (1 + (\frac{x-l}{s})^2)} \]</p>
+<div class="chunk" id="unnamed-chunk-3"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># Dibuja la función de densidad y de distribución de Cauchy con l=-2, s=0.5</span>
+<span class="hl std">dibuja_cauchy</span> <span class="hl kwb">&lt;-</span> <span class="hl kwa">function</span><span class="hl std">(</span><span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">30</span><span class="hl std">,</span> <span class="hl kwc">p</span> <span class="hl std">=</span> <span class="hl num">0.1</span><span class="hl std">) {</span>
+  <span class="hl std">n</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">as.integer</span><span class="hl std">(n)</span>
+  <span class="hl kwa">if</span> <span class="hl std">(n</span> <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl std">)</span> <span class="hl kwd">stop</span><span class="hl std">(</span><span class="hl str">&quot;Hacen falta más números&quot;</span><span class="hl std">)</span>
+
+  <span class="hl com"># Establecemos los límites</span>
+  <span class="hl std">a</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">qcauchy</span><span class="hl std">(p,</span> <span class="hl opt">-</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl num">0.5</span><span class="hl std">)</span>
+  <span class="hl std">b</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">qcauchy</span><span class="hl std">(</span><span class="hl num">1</span> <span class="hl opt">-</span> <span class="hl std">p,</span> <span class="hl opt">-</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl num">0.5</span><span class="hl std">)</span>
+  <span class="hl std">opar</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">par</span><span class="hl std">(</span><span class="hl kwc">mfrow</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span> <span class="hl num">2</span><span class="hl std">))</span>
+
+  <span class="hl com"># Dibujamos la función de densidad y de distribución</span>
+  <span class="hl std">x</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">seq</span><span class="hl std">(a, b,, n)</span>
+  <span class="hl kwd">plot</span><span class="hl std">(x,</span> <span class="hl kwd">dcauchy</span><span class="hl std">(x,</span> <span class="hl opt">-</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl num">0.5</span><span class="hl std">),</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;l&quot;</span><span class="hl std">,</span> <span class="hl kwc">ylab</span> <span class="hl std">=</span> <span class="hl str">&quot;f(x)&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;red&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">plot</span><span class="hl std">(x,</span> <span class="hl kwd">pcauchy</span><span class="hl std">(x,</span> <span class="hl opt">-</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl num">0.5</span><span class="hl std">),</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;l&quot;</span><span class="hl std">,</span> <span class="hl kwc">ylab</span> <span class="hl std">=</span> <span class="hl str">&quot;F(x)&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">par</span><span class="hl std">(opar)</span>
+<span class="hl std">}</span>
+
+<span class="hl kwd">dibuja_cauchy</span><span class="hl std">()</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-3-1.png" title="plot of chunk unnamed-chunk-3" alt="plot of chunk unnamed-chunk-3" class="plot" /></div></div>
+<h2 id="estadística-descriptiva">Estadística descriptiva</h2>
+<p>En este apartado vamos a realizar una estadística descriptiva con el célebre conjunto de datos <code>iris</code>, que se encuentra de forma predeterminada en R. La mayoría de funciones gráficas usadas ya se explicaron con detalle en la anterior entrega.</p>
+<p>En primer lugar echamos un vistazo a los datos y a la función de ayuda <code>help(iris)</code>. Como podemos observar, disponemos de 150 ejemplos divididos en tres clases de flores: setosa, virginica y versicolor. Además, para cada uno de ellos tenemos información numérica de cuatro características: el ancho y el largo de sépalo, y el ancho y el largo del pétalo.</p>
+<div class="chunk" id="unnamed-chunk-4"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">attach</span><span class="hl std">(iris)</span>
+<span class="hl kwd">cat</span><span class="hl std">(</span><span class="hl str">&quot;Número de ejemplos: &quot;</span><span class="hl std">,</span> <span class="hl kwd">dim</span><span class="hl std">(iris)[[</span><span class="hl num">1</span><span class="hl std">]])</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Número de ejemplos:  150
+</pre></div>
+</div></div>
+<p>Veamos un resumen de los datos, observando los cuartiles, la media, y los valores máximo y mínimo de cada atributo numérico. También vemos el número de ejemplos de cada clase para las especies.</p>
+<div class="chunk" id="unnamed-chunk-5"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">summary</span><span class="hl std">(iris)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##   Sepal.Length    Sepal.Width     Petal.Length    Petal.Width   
+##  Min.   :4.300   Min.   :2.000   Min.   :1.000   Min.   :0.100  
+##  1st Qu.:5.100   1st Qu.:2.800   1st Qu.:1.600   1st Qu.:0.300  
+##  Median :5.800   Median :3.000   Median :4.350   Median :1.300  
+##  Mean   :5.843   Mean   :3.057   Mean   :3.758   Mean   :1.199  
+##  3rd Qu.:6.400   3rd Qu.:3.300   3rd Qu.:5.100   3rd Qu.:1.800  
+##  Max.   :7.900   Max.   :4.400   Max.   :6.900   Max.   :2.500  
+##        Species  
+##  setosa    :50  
+##  versicolor:50  
+##  virginica :50  
+##                 
+##                 
+## 
+</pre></div>
+</div></div>
+<p>Nos podría interesar aislar la media, la mediana y la varianza de los datos:</p>
+<div class="chunk" id="unnamed-chunk-6"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwa">for</span> <span class="hl std">(i</span> <span class="hl kwa">in</span> <span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">4</span><span class="hl std">) {</span>
+  <span class="hl kwd">cat</span><span class="hl std">(</span><span class="hl str">&quot;Media de&quot;</span><span class="hl std">,</span> <span class="hl kwd">names</span><span class="hl std">(iris)[i],</span> <span class="hl str">&quot;:&quot;</span><span class="hl std">,</span> <span class="hl kwd">mean</span><span class="hl std">(iris[, i]),</span> <span class="hl str">&quot;\n&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">cat</span><span class="hl std">(</span><span class="hl str">&quot;Mediana de&quot;</span><span class="hl std">,</span> <span class="hl kwd">names</span><span class="hl std">(iris)[i],</span> <span class="hl str">&quot;:&quot;</span><span class="hl std">,</span> <span class="hl kwd">median</span><span class="hl std">(iris[, i]),</span> <span class="hl str">&quot;\n&quot;</span><span class="hl std">)</span>
+  <span class="hl kwd">cat</span><span class="hl std">(</span><span class="hl str">&quot;Varianza de&quot;</span><span class="hl std">,</span> <span class="hl kwd">names</span><span class="hl std">(iris)[i],</span> <span class="hl str">&quot;:&quot;</span><span class="hl std">,</span> <span class="hl kwd">var</span><span class="hl std">(iris[, i]),</span> <span class="hl str">&quot;\n\n&quot;</span><span class="hl std">)</span>
+<span class="hl std">}</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Media de Sepal.Length : 5.843333 
+## Mediana de Sepal.Length : 5.8 
+## Varianza de Sepal.Length : 0.6856935 
+## 
+## Media de Sepal.Width : 3.057333 
+## Mediana de Sepal.Width : 3 
+## Varianza de Sepal.Width : 0.1899794 
+## 
+## Media de Petal.Length : 3.758 
+## Mediana de Petal.Length : 4.35 
+## Varianza de Petal.Length : 3.116278 
+## 
+## Media de Petal.Width : 1.199333 
+## Mediana de Petal.Width : 1.3 
+## Varianza de Petal.Width : 0.5810063
+</pre></div>
+</div></div>
+<p>Vemos que la media y la mediana de todos los datos están cercanas salvo para la longitud del pétalo, que es además la que tiene mayor varianza. Una cosa interesante que podemos hacer es mirar la matriz de covarianzas y correlaciones de los atributos:</p>
+<div class="chunk" id="unnamed-chunk-7"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">var</span><span class="hl std">(iris[</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">4</span><span class="hl std">])</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##              Sepal.Length Sepal.Width Petal.Length Petal.Width
+## Sepal.Length    0.6856935  -0.0424340    1.2743154   0.5162707
+## Sepal.Width    -0.0424340   0.1899794   -0.3296564  -0.1216394
+## Petal.Length    1.2743154  -0.3296564    3.1162779   1.2956094
+## Petal.Width     0.5162707  -0.1216394    1.2956094   0.5810063
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">cor</span><span class="hl std">(iris[</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">4</span><span class="hl std">])</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##              Sepal.Length Sepal.Width Petal.Length Petal.Width
+## Sepal.Length    1.0000000  -0.1175698    0.8717538   0.8179411
+## Sepal.Width    -0.1175698   1.0000000   -0.4284401  -0.3661259
+## Petal.Length    0.8717538  -0.4284401    1.0000000   0.9628654
+## Petal.Width     0.8179411  -0.3661259    0.9628654   1.0000000
+</pre></div>
+</div></div>
+<p>Obervamos que hay una correlación fuerte entre el ancho y la longitud del sépalo, o que el atributo de la longitud del pétalo tiene una varianza bastante más grande en comparación con el resto.</p>
+<p>Podemos ver un resumen de los datos aprovechando la función modificada que hicimos en la práctica anterior para mostrar histogramas en la diagonal. En el resto de casillas se muestran las combinaciones de las distintas columnas, excluyendo las especies.</p>
+
+<div class="chunk" id="unnamed-chunk-9"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">pairs</span><span class="hl std">(iris[</span><span class="hl num">1</span><span class="hl opt">:</span><span class="hl num">4</span><span class="hl std">],</span> <span class="hl kwc">diag.panel</span> <span class="hl std">= panel.hist,</span>
+  <span class="hl kwc">cex.labels</span> <span class="hl std">=</span> <span class="hl num">1.2</span><span class="hl std">,</span> <span class="hl kwc">font.labels</span> <span class="hl std">=</span> <span class="hl num">2</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-9-1.png" title="plot of chunk unnamed-chunk-9" alt="plot of chunk unnamed-chunk-9" class="plot" /></div></div>
+<p>También podemos mostrar un diagrama de sectores para estudiar la distribución de clases, que vemos que es equilibrada.</p>
+<div class="chunk" id="unnamed-chunk-10"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">pie</span><span class="hl std">(</span><span class="hl kwd">table</span><span class="hl std">(Species),</span> <span class="hl kwc">main</span> <span class="hl std">=</span> <span class="hl str">&quot;Distribución de clases&quot;</span><span class="hl std">,</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;green3&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">))</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-10-1.png" title="plot of chunk unnamed-chunk-10" alt="plot of chunk unnamed-chunk-10" class="plot" /></div></div>
+<p>Estudiamos también un <em>boxplot</em> de las características numéricas frente a las especies. La variabilidad es menor en general en la especie <em>setosa</em>, aunque en el ancho del sépalo es la <em>virginica</em> la que presenta menor variabilidad.</p>
+<div class="chunk" id="unnamed-chunk-11"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">opar</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">par</span><span class="hl std">(</span><span class="hl kwc">mfrow</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl num">2</span><span class="hl std">))</span>
+<span class="hl kwd">boxplot</span><span class="hl std">(Sepal.Length</span> <span class="hl opt">~</span> <span class="hl std">Species, iris,</span>
+  <span class="hl kwc">main</span> <span class="hl std">=</span> <span class="hl str">&quot;Longitud de sépalo vs especie&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;lightpink3&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">boxplot</span><span class="hl std">(Sepal.Width</span> <span class="hl opt">~</span> <span class="hl std">Species, iris,</span>
+  <span class="hl kwc">main</span> <span class="hl std">=</span> <span class="hl str">&quot;Anchura de sépalo vs especie&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;antiquewhite1&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">boxplot</span><span class="hl std">(Petal.Length</span> <span class="hl opt">~</span> <span class="hl std">Species, iris,</span>
+  <span class="hl kwc">main</span> <span class="hl std">=</span> <span class="hl str">&quot;Longitud de pétalo vs especie&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;lightskyblue4&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">boxplot</span><span class="hl std">(Petal.Width</span> <span class="hl opt">~</span> <span class="hl std">Species, iris,</span>
+  <span class="hl kwc">main</span> <span class="hl std">=</span> <span class="hl str">&quot;Anchura de pétalo vs especie&quot;</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;orange1&quot;</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-11-1.png" title="plot of chunk unnamed-chunk-11" alt="plot of chunk unnamed-chunk-11" class="plot" /></div><div class="rcode">
+<div class="source"><pre class="knitr r"><span class="hl kwd">par</span><span class="hl std">(opar)</span>
+</pre></div>
+</div></div>
+<p>Y ahora podemos ver un diagrama de barras de la longitud del pétalo frente a las especies. Vemos cómo la setosa tiene la menor longitud, seguida de la versicolor, y la virginica es la que más tiene.</p>
+<div class="chunk" id="unnamed-chunk-12"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">tbl</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">with</span><span class="hl std">(iris,</span> <span class="hl kwd">table</span><span class="hl std">(Petal.Length, Species),</span> <span class="hl num">1</span><span class="hl std">)</span>
+<span class="hl kwd">barplot</span><span class="hl std">(</span><span class="hl kwd">t</span><span class="hl std">(tbl),</span> <span class="hl kwc">legend</span> <span class="hl std">=</span> <span class="hl num">TRUE</span><span class="hl std">,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;green3&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">),</span>
+  <span class="hl kwc">main</span> <span class="hl std">=</span> <span class="hl str">&quot;Longitud de pétalo por especies&quot;</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-12-1.png" title="plot of chunk unnamed-chunk-12" alt="plot of chunk unnamed-chunk-12" class="plot" /></div></div>
+<p>Podemos intentar visualizar algunas de las características de las que disponemos, por ejemplo el ancho y el largo del pétalo, agrupando las clases por colores. Vemos cómo se forman tres grupos más o menos diferenciados.</p>
+<div class="chunk" id="unnamed-chunk-13"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">plot</span><span class="hl std">(Petal.Length, Petal.Width,</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;green3&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)[Species],</span> <span class="hl kwc">pch</span> <span class="hl std">=</span> <span class="hl num">19</span><span class="hl std">)</span>
+<span class="hl kwd">legend</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span> <span class="hl num">2.5</span><span class="hl std">,</span> <span class="hl kwc">legend</span> <span class="hl std">=</span> <span class="hl kwd">unique</span><span class="hl std">(Species),</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;green3&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">),</span> <span class="hl kwc">pch</span> <span class="hl std">=</span> <span class="hl num">19</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-13-1.png" title="plot of chunk unnamed-chunk-13" alt="plot of chunk unnamed-chunk-13" class="plot" /></div></div>
+<p>Como novedad introducimos la función <code>stem</code>, que produce un diagrama de tallo-hojas de los valores que le proporcionemos. Se trata de una representación similar en cierto sentido a un histograma, que nos permite estudiar la distribución de los datos. También tiene otros parámetros que definen la escala (<code>scale</code>), el ancho (<code>width</code>) o la tolerancia (<code>atom</code>) a la hora de pintarlo.</p>
+<div class="chunk" id="unnamed-chunk-14"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">stem</span><span class="hl std">(Petal.Length)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+##   The decimal point is at the |
+## 
+##   1 | 012233333334444444444444
+##   1 | 55555555555556666666777799
+##   2 | 
+##   2 | 
+##   3 | 033
+##   3 | 55678999
+##   4 | 000001112222334444
+##   4 | 5555555566677777888899999
+##   5 | 000011111111223344
+##   5 | 55566666677788899
+##   6 | 0011134
+##   6 | 6779
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">stem</span><span class="hl std">(Sepal.Width)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+##   The decimal point is 1 digit(s) to the left of the |
+## 
+##   20 | 0
+##   21 | 
+##   22 | 000
+##   23 | 0000
+##   24 | 000
+##   25 | 00000000
+##   26 | 00000
+##   27 | 000000000
+##   28 | 00000000000000
+##   29 | 0000000000
+##   30 | 00000000000000000000000000
+##   31 | 00000000000
+##   32 | 0000000000000
+##   33 | 000000
+##   34 | 000000000000
+##   35 | 000000
+##   36 | 0000
+##   37 | 000
+##   38 | 000000
+##   39 | 00
+##   40 | 0
+##   41 | 0
+##   42 | 0
+##   43 | 
+##   44 | 0
+</pre></div>
+</div></div>
+<p>La función <code>density</code> nos permite realizar una estimación no paramétrica de la función de densidad de la distribución de los datos. Admite como parámetros la variable que deseamos estimar y una serie de parámetros opcionales, entre los que detacan el número de puntos equiespaciados que queremos usar para la estimación, <code>n</code>.</p>
+<p>Por ejemplo, estimamos la densidad del ancho de pétalo usando un número de puntos distintos, y superponemos la estimación con su histograma (mostrando en el eje Y la densidad en vez de la frecuencia). Vemos que se ajusta bastante bien a la muestra.</p>
+<div class="chunk" id="unnamed-chunk-15"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">hist</span><span class="hl std">(Sepal.Width,</span> <span class="hl kwc">prob</span> <span class="hl std">= T)</span>
+<span class="hl kwd">lines</span><span class="hl std">(</span><span class="hl kwd">density</span><span class="hl std">(Sepal.Width,</span> <span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">20</span><span class="hl std">),</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;red&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">lines</span><span class="hl std">(</span><span class="hl kwd">density</span><span class="hl std">(Sepal.Width,</span> <span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">50</span><span class="hl std">),</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-15-1.png" title="plot of chunk unnamed-chunk-15" alt="plot of chunk unnamed-chunk-15" class="plot" /></div></div>
+<p>Hacemos lo mismo ahora para la longitud del pétalo</p>
+<div class="chunk" id="unnamed-chunk-16"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">hist</span><span class="hl std">(Sepal.Length,</span> <span class="hl kwc">prob</span> <span class="hl std">= T)</span>
+<span class="hl kwd">lines</span><span class="hl std">(</span><span class="hl kwd">density</span><span class="hl std">(Sepal.Length,</span> <span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">20</span><span class="hl std">),</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;red&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">lines</span><span class="hl std">(</span><span class="hl kwd">density</span><span class="hl std">(Sepal.Length,</span> <span class="hl kwc">n</span> <span class="hl std">=</span> <span class="hl num">50</span><span class="hl std">),</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-16-1.png" title="plot of chunk unnamed-chunk-16" alt="plot of chunk unnamed-chunk-16" class="plot" /></div></div>
+<h2 id="tests-estadísticos">Tests estadísticos</h2>
+<p>Vamos a ver cómo podemos hacer un <em>Test-T</em> con una o dos muestras. En el primer caso podemos intentar comparar la media de la muestra con un valor fijo \(\mu_0\), y en el segundo podemos ver si la diferencia en la media de dos variables es estadísticamente significativa. Para ello usamos la función <code>t.test</code>, que cuyos parámetros más importantes son:</p>
+<ul>
+<li><code>x</code>: vector numérico de datos.</li>
+<li><code>y</code>: vector numérico de datos (opcional).</li>
+<li><code>alternative</code>: un string especificando la hipótesis alternativa. Puede ser “two.sided” (por defecto), “greater” ó “less”.</li>
+<li><code>mu</code>: un número indicando el valor real de la media, o la diferencia de medias. Por defecto es 0.</li>
+<li><code>var.equal</code>: variable lógica que indica si en el caso de dos muestras las varianzas se consideran iguales.</li>
+<li><code>conf.level</code>: valor de confianza del intervalo. Por defecto 0.95.</li>
+</ul>
+<p>En nuestro caso, podemos estudiar si la media de alguna de las variables del conjunto es 0.</p>
+<div class="chunk" id="unnamed-chunk-17"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">t.test</span><span class="hl std">(Sepal.Length)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+## 	One Sample t-test
+## 
+## data:  Sepal.Length
+## t = 86.425, df = 149, p-value &lt; 2.2e-16
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  5.709732 5.976934
+## sample estimates:
+## mean of x 
+##  5.843333
+</pre></div>
+</div></div>
+<p>Vemos que el <code>p-value</code> es muy pequeño (&lt;&lt; 0.05), por lo que podemos rechazar la hipótesis nula y aceptar que la media de la población no es 0. Obtenemos también la información de que esta media se encuentra en el intervalo [5.7097, 5.9770] con una confianza del 95%.</p>
+<p>Podemos también hacer un test con dos muestras para ver si la media de dos variables difiere de forma estadísticamnete significativa.</p>
+<div class="chunk" id="unnamed-chunk-18"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">t.test</span><span class="hl std">(Sepal.Length, Sepal.Width)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+## 	Welch Two Sample t-test
+## 
+## data:  Sepal.Length and Sepal.Width
+## t = 36.463, df = 225.68, p-value &lt; 2.2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  2.63544 2.93656
+## sample estimates:
+## mean of x mean of y 
+##  5.843333  3.057333
+</pre></div>
+</div></div>
+<p>De nuevo el p-value es menor que 0.05, por lo que podemos aceptar que la diferencia de medias es estadísticamente significativa. Podemos ahora realizar un test modificado en el que asumimos que ambas variables tienen la misma varianza, aunque obtenemos los mismos resultados.</p>
+<div class="chunk" id="unnamed-chunk-19"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">t.test</span><span class="hl std">(Sepal.Length, Sepal.Width,</span> <span class="hl kwc">var.equal</span> <span class="hl std">= T)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+## 	Two Sample t-test
+## 
+## data:  Sepal.Length and Sepal.Width
+## t = 36.463, df = 298, p-value &lt; 2.2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  2.635637 2.936363
+## sample estimates:
+## mean of x mean of y 
+##  5.843333  3.057333
+</pre></div>
+</div></div>
+<p>Podríamos haber hecho un test-F para estudiar si el cociente de las varianzas es distinto de 1 de forma significativa, comprobando que efectivamente es así. Esto nos lo permite la función <code>var.test</code>, con argumentos similares a <code>t.test</code>.</p>
+<div class="chunk" id="unnamed-chunk-20"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">var.test</span><span class="hl std">(Sepal.Length, Sepal.Width)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+## 	F test to compare two variances
+## 
+## data:  Sepal.Length and Sepal.Width
+## F = 3.6093, num df = 149, denom df = 149, p-value = 3.597e-14
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  2.614702 4.982242
+## sample estimates:
+## ratio of variances 
+##           3.609304
+</pre></div>
+</div></div>
+<h2 id="regresión-lineal">Regresión lineal</h2>
+<p>En este apartado estudiaremos como hacer regresión lineal con la función <code>lm</code>. Esta función acepta como primer argumento una <em>fórmula</em> o relación entre unas variables, y realiza una regresión lineal con ellas. También acepta que se especifiquen los datos de entrada con <code>data</code> o que se proporcionen unos pesos para la regresión con <code>weights</code>.</p>
+<p>Recuperamos la representación que hicimos del ancho de pétalo frente a la longitud del mismo, y realizar una regresión lineal de dichos datos.</p>
+<div class="chunk" id="unnamed-chunk-21"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">plot</span><span class="hl std">(Petal.Length, Petal.Width,</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;green3&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)[Species],</span> <span class="hl kwc">pch</span> <span class="hl std">=</span> <span class="hl num">19</span><span class="hl std">)</span>
+<span class="hl kwd">legend</span><span class="hl std">(</span><span class="hl num">1</span><span class="hl std">,</span> <span class="hl num">2.5</span><span class="hl std">,</span> <span class="hl kwc">legend</span> <span class="hl std">=</span> <span class="hl kwd">unique</span><span class="hl std">(Species),</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;green3&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">),</span> <span class="hl kwc">pch</span> <span class="hl std">=</span> <span class="hl num">19</span><span class="hl std">)</span>
+<span class="hl std">reg</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">lm</span><span class="hl std">(Petal.Width</span> <span class="hl opt">~</span> <span class="hl std">Petal.Length)</span>
+<span class="hl kwd">abline</span><span class="hl std">(reg,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;orange&quot;</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-21-1.png" title="plot of chunk unnamed-chunk-21" alt="plot of chunk unnamed-chunk-21" class="plot" /></div></div>
+<p>La recta de regresión la vemos en naranja, pintada gracias a la función <code>abline</code>. Esta función añade una recta al plot actual, definida por los valores de pendiente y corte con el eje de ordenadas del objto <code>reg</code>, que recoge los resultados de la regresión. Otra opción sería haber dibujado las predicciones con <code>predict</code>, tal que así: <code>plot(predict(reg), Petal.Length)</code>.</p>
+<p>Podemos ver con más detalle esta regresión con <code>summary</code>, como información sobre la distribución de los residuos, los coeficientes o el valor de \(R^2\), que es 0.9271, por lo que el ajuste es bastante bueno. Si solo queremos ver los coeficientes, podemos extraerlos directamente del objeto <code>reg</code>.</p>
+<div class="chunk" id="unnamed-chunk-22"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">summary</span><span class="hl std">(reg)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+## Call:
+## lm(formula = Petal.Width ~ Petal.Length)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.56515 -0.12358 -0.01898  0.13288  0.64272 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.363076   0.039762  -9.131  4.7e-16 ***
+## Petal.Length  0.415755   0.009582  43.387  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.2065 on 148 degrees of freedom
+## Multiple R-squared:  0.9271,	Adjusted R-squared:  0.9266 
+## F-statistic:  1882 on 1 and 148 DF,  p-value: &lt; 2.2e-16
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">reg</span><span class="hl opt">$</span><span class="hl std">coef</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##  (Intercept) Petal.Length 
+##   -0.3630755    0.4157554
+</pre></div>
+</div></div>
+<p>Si invocamos la función <code>plot</code> sobre el objeto <code>reg</code> nos muestra unas gráficas relacionadas con los residuos, que nos permiten evaluar también la bondad del ajuste.</p>
+<div class="chunk" id="unnamed-chunk-23"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">opar</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">par</span><span class="hl std">(</span><span class="hl kwc">mfrow</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl num">2</span><span class="hl std">))</span>
+<span class="hl kwd">plot</span><span class="hl std">(reg)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-23-1.png" title="plot of chunk unnamed-chunk-23" alt="plot of chunk unnamed-chunk-23" class="plot" /></div><div class="rcode">
+<div class="source"><pre class="knitr r"><span class="hl kwd">par</span><span class="hl std">(opar)</span>
+</pre></div>
+</div></div>
+<h2 id="clasificación-binaria">Clasificación binaria</h2>
+<p>Por último, vamos a ver un caso simple en el que podemos realizar clasificación binaria a partir de regresión. En concreto, nos quedamos con dos clases del dataset <code>iris</code>, por ejemplo setosa y virginica. Convertimos las clases en etiquetas numéricas, que en este caso serían 1 y 3, respectivamente.</p>
+<div class="chunk" id="unnamed-chunk-24"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">iris_2class</span> <span class="hl kwb">&lt;-</span> <span class="hl std">iris[Species</span> <span class="hl opt">!=</span> <span class="hl str">&quot;versicolor&quot;</span><span class="hl std">, ]</span>
+<span class="hl std">iris_2names</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">unique</span><span class="hl std">(iris_2class</span><span class="hl opt">$</span><span class="hl std">Species)</span>
+<span class="hl std">iris_2class</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">transform</span><span class="hl std">(iris_2class,</span> <span class="hl kwc">Species</span> <span class="hl std">=</span> <span class="hl kwd">as.numeric</span><span class="hl std">(Species))</span>
+<span class="hl std">iris_2species</span> <span class="hl kwb">&lt;-</span> <span class="hl std">iris_2class[,</span> <span class="hl str">&quot;Species&quot;</span><span class="hl std">]</span>
+</pre></div>
+</div></div>
+<p>Ahora, realizamos una regresión lineal en tres dimensiones, tomando como variable independiente la de las clases o etiquetas y como variables dependientes la longitud del pétalo (\(x_1\)) y el ancho del pétalo (\(x_2\)). Si proyectamos el plano de regresión que nos sale por la curva de nivel 2 (la que separa las clases 1 y 3), obtendremos los pesos adecuados para una recta que separa las clases en el plano. En concreto, tras la regresión obtenemos unos pesos \( (w_0, w_1, w_2) \) que definen el plano \[ y = w_0 + w_1x_1 + w_2x_2, \]</p>
+<p>y queremos proyectarlo en la recta \[ w_0 + w_1x_1 + w_2x_2 = 2. \]</p>
+<p>Como al pintar los datos estamos mostrando \(x_2\) frente a \(x_1\), despejamos \(x_2\) de la ecuación anterior para obtener la pendiente y el punto de corte con el eje Y de la recta deseada.</p>
+<div class="chunk" id="unnamed-chunk-25"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">reg3D</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">lm</span><span class="hl std">(iris_2species</span> <span class="hl opt">~</span> <span class="hl std">iris_2class</span><span class="hl opt">$</span><span class="hl std">Petal.Length</span> <span class="hl opt">+</span> <span class="hl std">iris_2class</span><span class="hl opt">$</span><span class="hl std">Petal.Width)</span>
+<span class="hl std">a</span> <span class="hl kwb">&lt;-</span> <span class="hl opt">-</span><span class="hl std">reg3D</span><span class="hl opt">$</span><span class="hl std">coef[</span><span class="hl num">2</span><span class="hl std">]</span> <span class="hl opt">/</span> <span class="hl std">reg3D</span><span class="hl opt">$</span><span class="hl std">coef[</span><span class="hl num">3</span><span class="hl std">]</span>
+<span class="hl std">b</span> <span class="hl kwb">&lt;-</span> <span class="hl std">(</span><span class="hl num">2</span> <span class="hl opt">-</span> <span class="hl std">reg3D</span><span class="hl opt">$</span><span class="hl std">coef[</span><span class="hl num">1</span><span class="hl std">])</span> <span class="hl opt">/</span> <span class="hl std">reg3D</span><span class="hl opt">$</span><span class="hl std">coef[</span><span class="hl num">3</span><span class="hl std">]</span>
+
+<span class="hl kwd">plot</span><span class="hl std">(iris_2class</span><span class="hl opt">$</span><span class="hl std">Petal.Length, iris_2class</span><span class="hl opt">$</span><span class="hl std">Petal.Width,</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">)[Species],</span> <span class="hl kwc">pch</span> <span class="hl std">=</span> <span class="hl num">19</span><span class="hl std">)</span>
+<span class="hl kwd">legend</span><span class="hl std">(</span><span class="hl num">5.3</span><span class="hl std">,</span> <span class="hl num">0.6</span><span class="hl std">,</span> <span class="hl kwc">legend</span> <span class="hl std">= iris_2names,</span>
+  <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;red&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;blue&quot;</span><span class="hl std">),</span> <span class="hl kwc">pch</span> <span class="hl std">=</span> <span class="hl num">19</span><span class="hl std">)</span>
+<span class="hl kwd">abline</span><span class="hl std">(b, a,</span> <span class="hl kwc">col</span> <span class="hl std">=</span> <span class="hl str">&quot;orange&quot;</span><span class="hl std">)</span>
+</pre></div>
+</div><div class="rimage center"><img src="figure/unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" class="plot" /></div></div>
+<p>Vemos como la recta divide el plano en dos regiones, en cada una de las cuales se encuentran los ejemplos de una clase distinta.</p>
+<div class="chunk" id="unnamed-chunk-26"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">detach</span><span class="hl std">(iris)</span>
+</pre></div>
+</div></div>
+
+<!-- ------------------- end of main content --------------- -->
+
+      </section>
+
+      <footer>
+        Antonio Coín Castro
+        <p><small>Tema original de <a href="https://github.com/orderedlist">orderedlist</a></p><p></p>
+      </footer>
+
+    </div>
+</body></html>
