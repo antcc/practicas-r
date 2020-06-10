@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<!--- PLANTILLA ORIGINAL DE https://hplgit.github.io/teamods/writing_reports/_static/report_github_minimal.html
+Distribuida con Licencia Creative Commons Attribution-ShareAlike 3.0 Unported License
+(ver archivo LICENSE para el texto completo)
+ --->
+<head>
+<link rel="shortcut icon" type="image/png" href="assets/r.png"/>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Trabajo final EC</title>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="assets/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h2>Trabajo final de Estadística Computacional</h2>
+
+        <!-- picture below the heading on the left -->
+	<p style="text-align:center;"><a href="https://www.r-project.org/" target="_blank"><img src="assets/r.png" width="80" class="center"></a></p>
+
+<p><b>Antonio Coín Castro</b><br>
+DNI: 77191012E<br>
+5º DGIIM</p>
+
+
+  <!--- Aquí debería ir el índice -->
+  <div id="toc_container">
+
+<h3 class="toc_title" style="margin-top:30px;">Contenidos</h3>
+<ul class="toc_list">
+  <li><a href="#apartado-1">Apartado 1</a></li>
+  <li><a href="#apartado-2">Apartado 2</a></li>
+  <li><a href="#apartado-3">Apartado 3</a></li>
+  <li><a href="#apartado-4">Apartado 4</a></li>
+  <li><a href="#apartado-5">Apartado 5</a></li>
+  <li><a href="#apartado-6">Apartado 6</a></li>
+  <li><a href="#apartado-7">Apartado 7</a></li>
+  <li><a href="#apartado-8">Apartado 8</a></li>
+  <li><a href="#apartado-9">Apartado 9</a></li>
+  <li><a href="#conclusiones">Conclusiones</a></li>
+</ul>
+</div>
+
+      </header>
+
+      <!-- Here goes the main page --->
+      <section>
+
+     <button onclick="topFunction()" id="myBtn" title="Subir">Subir</button>
+
+<script>
+//Get the button:
+mybutton = document.getElementById("myBtn");
+
+// When the user scrolls down 400px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+  if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+    mybutton.style.display = "block";
+  } else {
+    mybutton.style.display = "none";
+  }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+  document.body.scrollTop = 0; // For Safari
+  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+}
+</script>
+
+<!-- ------------------- main content ---------------------- -->
+
+<h2 id="apartado-1">Apartado 1</h2>
+<p><strong>Considera en el plano el recinto cerrado finito definido por las funciones \(y=x^2\) y \(100x=y^2\) al cual pertenece el punto de coordenadas \((2,12)\). Realiza un gráfico del mismo.</strong></p>
+<p>Una rápida inspección de las funciones que nos dan junto al punto que pertenece al recinto nos permite expresar \(y\) como función de \(x\) en el segundo caso. Concretamente, si calculamos los puntos de corte entre ambas obtenemos que son \(x=0\) y \(x=100^{1/3}\), y así la segunda función la vemos despejada como \(y=\sqrt{100x}\).</p>
+<p>En primer lugar, definimos las funciones con las que trabajaremos, llamándolas <code>f1</code> y <code>f2</code>. Además, establecemos los límites del recinto en el eje \(X\).</p>
+<!--begin.rcode
+f1 <- function(x) x^2
+f2 <- function(x) sqrt(100*x)
+xlim <- c(0, 100^(1/3))
+end.rcode-->
+<p>Pasamos ahora a realizar un dibujo del recinto determinado por estas dos funciones. Como en los siguientes apartados vamos a necesitar dibujar puntos y caminos en el recinto, extendemos la función de dibujo para incluir estas posibilidades. Un detalle que comentamos es la manera en la que representaremos los puntos. Para nosotros, un punto en el plano será un vector de dos elementos: la primera componente en el primer elemento y la segunda en el segundo. Además, consideraremos como representación de un conjunto de \(N\) puntos una <strong>matriz</strong> \(N\times 2\), donde cada fila representa un punto.</p>
+<p>Los argumentos de nuestra función de dibujado son los siguientes:</p>
+<ul>
+<li><code>pts [=NULL]</code>: lista de puntos destacados a pintar.</li>
+<li><code>shate [=T]</code>: si es <code>TRUE</code>, se pinta la región sombreada.</li>
+<li><code>walks [=NULL]</code>: lista de recorridos aleatorios a dibujar. Cada elemento de la lista es una matriz de puntos.</li>
+<li><code>asp [=0]</code>: parámetro de dibujado para la función <code>plot</code>. Controla si se mantiene la misma escala en el eje X y en el eje Y (<code>asp=1</code>) o no (<code>asp=0</code>).</li>
+<li><code>xrange [=NULL]</code>: límites del plot en el eje X.</li>
+<li><code>yrange [=NULL]</code>: límites del plot en el eje Y.</li>
+<li><code>show_legend [=F]</code>: si es <code>TRUE</code>, se muestra una leyenda de las curvas en el plot.</li>
+<li><code>title [=""]</code>: título del plot.</li>
+</ul>
+<p>El comportamiento es el siguiente: si <code>walks = NULL</code>, los puntos de la matriz <code>pts</code> representan puntos cualesquiera. Sin embargo, si <code>walks</code> contiene \(n\) caminos, <code>pts</code> debe ser una matriz \(2n\times 2\), donde se van listando en el mismo orden en que aparecen los caminos los puntos de inicio y fin de los mismos, para destacarlos después.</p>
+<!--begin.rcode
+draw.region <- function(pts = NULL, shade = T,
+                        walks = NULL, asp = 0,
+                        xrange = NULL, yrange = NULL,
+                        show_legend = F, title = "") {
+    # Establecemos el rango de la región en el eje X
+    x <- seq(xlim[1], xlim[2], length = 1000)
+
+    # Calculamos las curvas
+    y1 <- f1(x)
+    y2 <- f2(x)
+
+    # Definimos los límites de dibujo
+    range <- list(xrange, yrange)
+    cpoints <- list(x, c(y1, y2))
+    for (i in 1:2) {
+        # Si no se proporcionaba algún límite, se calcula en base a
+        # la región y los puntos a dibujar.
+        if (is.null(range[[i]])) {
+            tot <- cpoints[[i]]
+            if (!is.null(pts))
+                tot <- c(tot, pts[, i])
+            range[[i]] <- c(min(tot), max(tot))
+        }
+    }
+
+    # Creamos área de dibujo
+    plot(range[[1]], range[[2]],
+         xlab = "x", ylab = "y",
+         main = title,
+         asp = asp, type = "n")
+
+    # Mostramos las curvas
+    lines(x, y1, col = "red", lwd = 2)
+    lines(x, y2, col = "red", lwd = 2)
+
+    # Mostramos los puntos destacados y el camino
+    if (!is.null(walks)) {
+        n <- length(walks)
+        # Elegimos una paleta de colores para pintar cada uno de un color
+        colors <- topo.colors(n)
+        # Para cada camino lo pintamos y destacamos los puntos de
+        # inicio y fin del mismo color
+        for (i in 1:n) {
+            lines(walks[[i]][,1], walks[[i]][,2], col = colors[i])
+            points(pts[2*i-1, 1], pts[2*i-1, 2], pch = 19, col = colors[i])
+            points(pts[2*i, 1], pts[2*i, 2], pch = 19, col = colors[i])
+        }
+    }
+    # Si no hay caminos, pintamos los puntos sin más
+    else if (!is.null(pts)) {
+        points(pts[, 1], pts[, 2], pch = 19, col = "blue")
+    }
+
+    # Mostramos leyenda
+    if (show_legend) {
+        if (asp == 0)
+            xtext = c(1, 3)
+        else
+            xtext = c(-3, 5)
+
+        text(xtext[1], 15, "y^2 = 100x", col = "red", cex = 1.5)
+        text(xtext[2], 4, "y = x^2", col = "red", cex = 1.5)
+    }
+
+    # Sombreamos el área encerrada, uniendo mediante líneas que simulan sombreado
+    if (shade) {
+        polygon(c(x, rev(x)), c(y1, rev(y2)), density = 15, col = "red")
+    }
+}
+end.rcode-->
+<p>Podemos entonces realizar un gráfico del recinto sombreado, con leyenda y el punto \((2, 12)\) destacado.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+draw.region(show_legend = T,
+            pts = matrix(c(2.0, 12.0), ncol = 2, byrow = T),
+            title = "Región encerrada por dos curvas junto al punto (2, 12)")
+end.rcode-->
+<h2 id="apartado-2">Apartado 2</h2>
+<p><strong>Construye una función que indique si un punto cualquiera del plano pertenece al interior de ese recinto, al borde o al exterior. Comprueba que \((2,12)\) es interior. Aplícala a los puntos \((0,0)\), \((−1,−1)\) y \((30,30)\) y comenta los resultados.</strong></p>
+<p>Un punto \((x,y)\) será interior a la región si se encuentra en el rango especificado en el eje \(X\) y después cumple \(y &gt; f1(x)\) y también \(y &lt; f2(x)\); será punto frontera si además de estar en el rango correcto en el eje \(X\) cumple \(y = f1(x)\) ó \(y = f2(x)\); y finalmente será exterior en cualquiera de los demás casos.</p>
+<p>Construimos una función que dado un punto <code>p</code> nos indica si pertenece al interior (devuelve <code>1</code>), a la frontera (devuelve <code>0</code>) ó al exterior (devuelve <code>-1</code>), con la posibilidad de mostrar mensajes informativos si así lo queremos, activando el parámetro <code>show = T</code>.</p>
+<!--begin.rcode
+position.region <- function(p, show = FALSE) {
+    x = p[1]
+    y = p[2]
+    if (x > xlim[1] && x < xlim[2] && y > f1(x) && y < f2(x)) {
+        if (show)
+            cat(
+              "El punto (", x, ",", y, ") pertenece al interior de la región.\n",
+              sep = "")
+            return(1)
+    }
+    else if (x >= xlim[1] && x <= xlim[2] && (y == f1(x) || y == f2(x))) {
+        if (show)
+            cat(
+              "El punto (", x, ",", y, ") pertenece a la frontera de la región.\n",
+              sep = "")
+        return(0)
+    }
+    else {
+        if (show)
+            cat(
+              "El punto (", x, ",", y, ") pertenece al exterior de la región.\n",
+              sep = "")
+        return(-1)
+    }
+}
+end.rcode-->
+<p>Aplicamos esta función a los puntos que nos dicen, y pintamos el resultado para comprobar que devuelve la información correctamente: el primer punto es interior, el segundo es frontera, y los dos últimos son exteriores.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+points <- matrix(c(2, 12, 0, 0, -1, -1, 30, 30), ncol = 2, byrow = T)
+nrows <- nrow(points)
+res <- vector(length = nrows)
+draw.region(pts = points)
+for (i in 1:nrows)
+    res[i] <- position.region(points[i,], show = T)
+end.rcode-->
+<h2 id="apartado-3">Apartado 3</h2>
+<p><strong>Construye una función que seleccione un valor, que llamamos \(A\), de una distribución uniforme en el intervalo \((-1/100,1/100)\), y otro, que llamamos \(B\), de una distribución normal de media 0 y varianza 1/100. Añade \((A,B)\) al punto \((2,12\)) y obtendrás un punto que llamaremos \(P_0\).</strong></p>
+<p>La función que nos piden es inmediata de construir utilizando las funciones de generación de números de distribuciones concretas en <code>R</code>. La planteamos en general y luego la llamamos con los parámetros concretos que nos dicen para obtener el punto \(P_0\).</p>
+<!--begin.rcode
+initial.point <- function(min, max, mu, sigma) {
+    a <- runif(1, min, max)
+    b <- rnorm(1, mu, sigma)
+
+    return(c(a, b))
+}
+p0 <- c(2, 12) + initial.point(-1/100, 1/100, 0, 1/100)
+p0
+end.rcode-->
+<h2 id="apartado-4">Apartado 4</h2>
+<p><strong>Considera el recorrido aleatorio con barrera absorbente definido del siguiente modo: sea un punto que en el tiempo \(t=0\) comienza en el origen, \(P_0\) del apartado anterior, y se desplaza del siguiente modo:</strong></p>
+<p><strong>En cada tiempo \(t, t=1,2,\dots\)</strong></p>
+<p><strong>1. se lanza un dado dos veces y una moneda dos veces.</strong></p>
+<p><strong>2. Si la suma de puntos de los dados es superior a 5, la coordenada x del punto se modifica para que aumente 5 centésimas, si no, disminuye 5 centésimas.</strong></p>
+<p><strong>3. Si las dos monedas son cara, la coordenada y del punto se modifica para que aumente 5 centésimas, si las dos son cruz, permanece inalterable y si no, disminuye 5 centésimas.</strong></p>
+<p><strong>4. A continuación el punto salta hasta sus nuevas coordenadas</strong></p>
+<p><strong>5. El proceso finaliza si, tras el salto, el punto alcanza el perímetro de la región o el exterior de la misma.</strong></p>
+<p><strong>Escribe una función que simule el movimiento del punto y devuelva, para un número máximo, \(M\), de pasos:</strong></p>
+<p><strong>1. La progresión aleatoria definida</strong></p>
+<p><strong>2. Cuantos pasos han sido necesarios para llegar al límite o NA si no lo consigue</strong></p>
+<p>Escribimos la función que nos piden, abstrayendo los parámetros para que pudiéramos emplearla en otro recorrido aleatorio con distinto tamaño del paso, y con un número arbitrario de monedas y dados. Empleamos la función del apartado 2 para ver si los puntos se mantienen en el interior del recinto.</p>
+<ul>
+<li><code>p0</code>: punto de partida.</li>
+<li><code>M</code>: límite de pasos.</li>
+<li><code>n1</code>: número de dados.</li>
+<li><code>n2</code>: número de monedas.</li>
+<li><code>thres</code>: umbral para la suma de los dados.</li>
+<li><code>d</code>: tamaño del paso.</li>
+</ul>
+<!--begin.rcode
+random.walk <- function(p0, M, n1 = 2, n2 = 2, thres = 5, d = 0.05) {
+    t <- 1
+    # El resultado será una secuencia de puntos, estructurada
+    # como una matriz
+    res <- matrix(0, ncol = 2, nrow = M)
+    # El punto inicial es p0
+    res[1,] <- p0
+    is.inside <- position.region(res[1,]) == 1
+
+    # Mientras no nos pasemos de M y el punto siga dentro
+    while (t < M && is.inside) {
+        # Tiramos dos dados y dos monedas
+        dice <- sample(1:6, n1, replace = T)
+        coins <- sample(c("cara", "cruz"), n2, replace = T)
+
+        # Calculamos el movimiento según los resultados
+        sx <- ifelse(sum(dice) > thres, 1, -1)
+        if (all(coins == "cara"))
+            sy <- 1
+        else if (all(coins == "cruz"))
+            sy <- 0
+        else
+            sy <- -1
+
+        # Avanzamos y comprobamos la condición
+        res[t + 1, ] <- res[t, ] + d * c(sx, sy)
+        is.inside <- position.region(res[t + 1,]) == 1
+        t <- t + 1
+    }
+
+    return(list(l = ifelse(is.inside, NA, t), res = res[1:t, ]))
+}
+end.rcode-->
+<h2 id="apartado-5">Apartado 5</h2>
+<p><strong>Realiza una simulación concreta del proceso con \(M=10000\) y represéntala gráficamente (mediante líneas) sobre la gráfica de la región.</strong></p>
+<p>Llamamos a la función con los parámetros indicados, y es ahora cuando usamos todo el poder de nuestra función de dibujado.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+M <- 10000
+rw <- random.walk(p0, M)
+
+if (!is.null(rw$l)) {
+    if (position.region(rw$res[rw$l,]) == 0)
+        cat("Se ha alcanzado la frontera en", rw$l,
+            "iteraciones\n")
+    else
+        cat("Se ha alcanzado el exterior en", rw$l,
+            "iteraciones\n")
+} else {
+    cat("No se ha alcanzado la frontera o el exterior en", M,
+        "iteraciones.")
+}
+
+# Dibujamos el camino y los puntos de partida y salida
+draw.region(pts = rw$res[c(1, rw$l),], walks = list(rw$res), shade = F,
+            title = paste("Recorrido aleatorio con barrera y tope de", M,
+                          "iteraciones"))
+end.rcode-->
+<h2 id="apartado-6">Apartado 6</h2>
+<p><strong>Realiza esta misma representación gráfica centrada en el punto de salida y con una anchura y altura de 2 unidades.</strong></p>
+<p>El punto de salida es el último punto de la lista devuelta por la función. Establecemos los límites de dibujado con los parámetros correspondientes de nuestra función.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+# Extraemos el último punto para central el plot a su alrededor
+last <- rw$res[rw$l,]
+draw.region(pts = rw$res[c(1, rw$l),], walks = list(rw$res), shade = F,
+            xrange = c(last[1] - 1, last[1] + 1),
+            yrange = c(last[2] - 1, last[2] + 1),
+            title = paste("Recorrido aleatorio con barrera y tope de", M,
+                          "iteraciones"))
+end.rcode-->
+<h2 id="apartado-7">Apartado 7</h2>
+<p><strong>Realiza cuatro simulaciones concretas del proceso con \(M=6000\) y represéntalas gráficamente sobre la gráfica de la región utilizando colores distintos para cada una.</strong></p>
+<p>De nuevo aprovechamos que nuestra función de dibujar ya hace el trabajo por nosotros. Le pasamos una lista con los cuatro caminos y ya los pinta de colores distintos; lo dibujamos centrado en \(P_0\) para tener un cierto <em>zoom</em>.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+M <- 6000
+n <- 4
+# Aquí iremos guardando los caminos y los puntos de inicio y fin
+walks <- vector("list", length = n)
+points = matrix(0, ncol = 2, nrow = 2*n)
+# Repetimos el experimento 4 veces
+for (i in 1:n) {
+    rw <- random.walk(p0, M)
+    walks[[i]] <- rw$res
+    points[2*i-1,] <- rw$res[1,]
+    points[2*i,] <- rw$res[rw$l,]
+}
+
+# Dibujamos centrado en p0
+draw.region(pts = points, walks = walks, shade = F,
+            xrange = c(p0[1] - 2, p0[1] + 2),
+            yrange = c(p0[2] - 2, p0[2] + 2),
+            title = paste("Recorridos aleatorios con barrera y tope de", M,
+                          "iteraciones"))
+end.rcode-->
+<h2 id="apartado-8">Apartado 8</h2>
+<p><strong>Escribe una función con un argumento que permita repetir un número de veces, \(n\), este proceso y devuelva un vector con el número de pasos necesarios para salir del recinto en cada repetición.</strong></p>
+<p>Simplemente hacemos un bucle de tamaño \(n\) y vamos llamando a la función que ejecuta el experimento, guardando en un vector el número de pasos obtenido en cada caso.</p>
+<!--begin.rcode
+distri.iter <- function(n, p0, M) {
+    res <- vector(length = n)
+    for (i in 1:n)
+        res[i] <- random.walk(p0, M)$l
+
+    return(res)
+}
+end.rcode-->
+<h2 id="apartado-9">Apartado 9</h2>
+<p><strong>Analiza el vector que se obtiene con la función anterior para \(n=1000\) y \(M=3000\) y comenta cómo es la distribución del parámetro pasos necesarios para llegar al límite en este proceso. ¿Es \(M\) suficientemente grande? A la luz de lo obtenido, indica razonadamente si habría que usar un valor mayor o no, y en caso afirmativo, repítelo alterando el valor de \(M\).</strong></p>
+<p>En primer lugar obtenemos el vector pedido para 1000 ejecuciones, midiendo el tiempo total y el tiempo medio por ejecución.</p>
+<!--begin.rcode
+n <- 1000
+M <- 3000
+start <- Sys.time()
+distri <- distri.iter(n, p0, M)
+elapsed <- Sys.time() - start
+units(elapsed) <- "secs"
+cat("Tiempo necesario para las simulaciones:", elapsed, "segundos\n")
+cat("Tiempo medio por cada simulación:", elapsed / n, "segundos")
+end.rcode-->
+<p>En mi ordenador tarda poco más de 1 segundo en realizar todas las ejecuciones. Estudiamos ahora si se ha conseguido salir del interior del recinto en todos los casos. Para ello podemos por ejemplo construir una tabla de frecuencias y ver si hay alguna ejecución en la que no se ha conseguido.</p>
+<!--begin.rcode
+distri_binary <- sapply(distri, function(x) ifelse(!is.na(x), "Llega", "No llega"))
+table(distri_binary)
+end.rcode-->
+<p>Vemos que en todas las ejecuciones hemos tenido éxito, lo que nos hace pensar que el valor de \(M\) elegido es suficiente. Para comprobar definitivamente este hecho estudiamos la distribución obtenida.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+summary(distri)
+cat("Desviación típica:", sd(distri))
+hist(distri, xlab = "Pasos hasta llegar a la frontera o al exterior")
+end.rcode-->
+<p>Atendiendo primero al resumen de la distribución, vemos cómo el número de intentos oscila aproximadamente entre 30 y 140, y la media es de unos 62 intentos con una desviación típica de unos 14 intentos. Por tanto, el límite superior de 3000 que hemos establecido es de sobra suficientemente grande, y no es necesario repetir el experimento alterando el valor de \(M\).</p>
+<p>Por otro lado, observamos en el histograma que la distribución presenta una asimetría positiva, pues las colas a la derecha son más largas. Vemos además que los valores se concentran más bien en torno a la media, recordando a una distribución normal (si bien sabemos que nuestra distribución nunca va a tomar valores negativos).</p>
+<p>Podemos intentar estimar una densidad para nuestra distribución con la función <code>density</code> que conocemos para ello. Dibujamos también una normal con la media y la desviación típica de nuestra distribución para comparar, y si observamos que, salvo en la asimetría, hay un gran parecido.</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center'
+m <- mean(distri)
+s <- sd(distri)
+xnorm <- seq(0, qnorm(0.9999, m, s), length = 40)
+hist(distri, prob = T, xlab = "Pasos hasta llegar a la frontera o al exterior")
+lines(density(distri, n = 50), col = "blue", lw = 2)
+lines(xnorm, dnorm(xnorm, m, s), col = "red", lw = 2)
+legend(85, 0.025, legend = c("Distribución estimada", "Distribución normal"),
+  col = c("blue", "red"), lty = c(1, 1), cex = 1.0)
+end.rcode-->
+<p>Finalmente podemos intentar dar un intervalo de confianza para la media de la distribución de la población, a partir de la función <code>t.test</code>.</p>
+<!--begin.rcode
+t.test(distri)
+end.rcode-->
+<p>Vemos como (para una ejecución concreta) con un 95% de confianza, la media de la distribución se encuentra en el intervalo \([62.29, 64.16]\).</p>
+<h2 id="conclusiones">Conclusiones</h2>
+<p>En este trabajo hemos trabajado con <code>R</code> de forma global, unificando los conocimientos que hemos ido adquiriendo durante el curso sobre este lenguaje y aplicando estos mismos conocimientos para desarrollar, representar y estudiar un procedimiento de <em>random walk</em> en un recinto con barrera. Como aspectos relevantes de la programación, podemos destacar:</p>
+<ul>
+<li>Es importante escoger buenas estructuras de datos para representar nuestros objetos, que nos faciliten la programación yla manipulación de los mismos.</li>
+<li>Al invertir tiempo inicialmente en desarrollar una buena función de dibujado que cubra varios casos ha resultado después muy sencillo ir desarrollando los distintos apartados del trabajo. El uso de parámetros por defecto facilita enormemente esta tarea.</li>
+<li>Se ha realizado un estudio inicial del problema, para obtener información del recinto y escoger la mejor forma de representar las funciones y de pintarlo. Esta es la parte menos automática y que requiere, además de capacidad de programación y entendimiento del lenguaje, una buena capacidad de análisis.</li>
+<li>Se han añadido comentarios en las funciones que facilitan su comprensión, y que además hacen que el código sea fácil de mantener y modificar si es necesario.</li>
+<li>Se han abstraído todo lo posible las funciones para permitir extender este mismo proceso a otro recorrido aleatorio con otros parámetros, sin más que llamando a las funciones con los parámetros deseados.</li>
+<li>Se ha ido ilustrando todo lo que se hacía, a ser posible, con gráficas informativas. Esto añadido a la presentación de resultados en <code>html</code> y con una plantilla sencilla pero efectiva hace que el trabajo sea fácil de leer y analizar.</li>
+</ul>
+<p>Sobre el procedimiento desarrollado en sí, vemos que los recorridos aleatorios que se generan son más o menos parecidos: la mayoría acaba saliéndose “por la derecha” del recinto. Esto no es de extrañar, ya que el suceso que controla que avancemos hacia la derecha tiene una alta probabilidad de ocurrencia: dos dados sumarán más de 5 puntos en 26 de las 36 combinaciones posibles, es decir, con una probabilidad de más de 0.7.</p>
+<p>Además, como el recinto tiene forma alargada y es estrecho, no hacen falta muchos pasos para salirse por la derecha, lo que se refleja en el “bajo” valor del número de pasos que hemos obtenido de media. Podríamos intentar repetir el experimento tomando como umbral de la suma de los dados un valor más grande, por ejemplo 10, y observaríamos unos recorridos como los siguientes:</p>
+<!--begin.rcode fig.width=6.5, fig.height=6.5, fig.align='center', echo = FALSE
+# Repetimos 4 veces
+M = 6000
+n = 4
+walks = vector("list", length = n)
+points = matrix(0, ncol = 2, nrow = 2*n)
+for (i in 1:n) {
+    rw <- random.walk(p0, M, thres = 10)
+    walks[[i]] <- rw$res
+    points[2*i-1,] <- rw$res[1,]
+    points[2*i,] <- rw$res[rw$l,]
+}
+draw.region(pts = points, walks = walks, shade = F,
+            xrange = c(p0[1] - 2, p0[1] + 2), yrange = c(p0[2] - 2, p0[2] + 2),
+            title = paste("Recorrido aleatorio con barrera y tope de", M, "iteraciones"))
+end.rcode-->
+<p>Comprobamos que en este caso las salidas son “por la izquierda” de la región, pues ahora es bastante más probable que las sumas de los dos dados sea menor que 10, lo que provoca que se avance casi siempre hacia la izquierda.</p>
+<p>En general, considero que he afianzado los conocimientos de <code>R</code> que he ido adquiriendo estos meses, y creo que he alcanzado los objetivos del curso sobre el manejo de este lenguaje y sus aplicaciones en la estadística.</p>
+<h3 id="sobre-la-plantilla">Sobre la plantilla</h3>
+<p>La plantilla utilizada es una adaptación de una plantilla libre llamada <strong>minimal</strong>, extraída de <a href="https://hplgit.github.io/teamods/writing_reports/_static/report_github_minimal.html">este enlace</a> y creada por el usuario <a href="https://github.com/orderedlist/minimal">orderedlist</a> en <code>Github</code>. Se distribuye bajo una licencia <a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>, cuyo texto completo se puede consultar en el fichero <code>LICENSE</code> que se adjunta.</p>
+
+<!-- ------------------- end of main content --------------- -->
+
+      </section>
+
+      <footer>
+        <p><small>Tema original de <a href="https://github.com/orderedlist">orderedlist</a></p><p></p>
+      </footer>
+
+    </div>
+</body></html>
